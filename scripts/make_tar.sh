@@ -30,7 +30,7 @@ if command -v strip >/dev/null 2>&1; then
 fi
 
 # create tarball
-tar -C dist -czf "${ROOT_DIR}/dist/pomotmr-${VERSION}-linux.tar.gz" "$(basename "$BUNDLE_DIR")"
+tar -C "$ROOT_DIR/dist" -czf "${ROOT_DIR}/dist/pomotmr-${VERSION}-linux.tar.gz" "$(basename "$BUNDLE_DIR")"
 
 echo "Bundle created:"
 echo "  dist/pomotmr-bundle/"
