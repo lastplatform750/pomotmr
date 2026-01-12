@@ -61,6 +61,9 @@ void del_timer(pomo_timer* tmr);
 // returns elapsed time in seconds
 int get_elapsed_time(pomo_timer* tmr);
 
+// returns remaining time in pomo section
+int get_remaining_time(pomo_timer* tmr);
+
 // stops the timer but retains amount of previous elapsed time
 int stop_timer(pomo_timer* tmr);
 

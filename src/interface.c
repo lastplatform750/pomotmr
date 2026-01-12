@@ -76,8 +76,11 @@ int update_ui(interface* ui, pomo_timer* tmr) {
     clear_line(1);
     clear_line(3);
     clear_line(5);
+
+    int remaining_time = get_remaining_time(tmr);
     
-    mvprintw(1, COL_BLOCK_1, "Elapsed time: %i", get_elapsed_time(tmr));
+    mvprintw(1, COL_BLOCK_1, "Remaining time: %i:%02d",
+                remaining_time / 60, remaining_time % 60);
     mvprintw(3, COL_BLOCK_1, "%s", get_p_state_string(tmr));
     
     switch(tmr -> r_state) {
@@ -90,7 +93,7 @@ int update_ui(interface* ui, pomo_timer* tmr) {
             clear_line(7);
             break;
         case PLAY:
-            mvprintw(5, COL_BLOCK_1, "PLAY");
+            mvprintw(5, COL_BLOCK_1, "PLAYING");
             clear_line(7);
     }
 

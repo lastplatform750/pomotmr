@@ -43,7 +43,6 @@ int main(int argc, char* argv[]) {
     }
 
     start_interface(ui, tmr);
-    start_timer(tmr);
 
     while (input != 'q') {
         input = getch();

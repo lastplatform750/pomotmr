@@ -83,6 +83,16 @@ int get_elapsed_time(pomo_timer* tmr) {
 }
 
 
+int get_remaining_time(pomo_timer* tmr) {
+    int elapsed_time;
+    if ((elapsed_time = get_elapsed_time(tmr)) == -1) {
+        fprintf(stderr, "ERROR: get_elapsed_time\n");
+        return -1;
+    }
+    return (tmr -> break_lengths[tmr -> p_state]) - elapsed_time;
+}
+
+
 int stop_timer(pomo_timer* tmr) {
     if (tmr -> r_state == PLAY) {
         int elapsed_time = get_elapsed_time(tmr);
