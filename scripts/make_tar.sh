@@ -1,0 +1,35 @@
+#!/bin/sh
+set -eu
+
+BUILD_DIR=builddir
+ROOT_DIR="$(pwd)"
+STAGING="$ROOT_DIR/dist/staging"
+BUNDLE_DIR="$ROOT_DIR/dist/pomotmr-bundle"
+VERSION=0.1.0
+APP=pomotmr
+
+# 1) install to staging (ABSOLUTE path!)
+rm -rf "$STAGING"
+meson install -C "$BUILD_DIR" --destdir="$STAGING"
+
+# 2) compose bundle
+rm -rf "$BUNDLE_DIR"
+mkdir -p "$BUNDLE_DIR/resource"
+
+# copy executable
+cp "$STAGING/usr/local/bin/$APP" "$BUNDLE_DIR/"
+
+# copy resources
+cp -r "$STAGING/usr/local/share/$APP/resource/"* "$BUNDLE_DIR/resource/"
+
+# optional: strip
+if command -v strip >/dev/null 2>&1; then
+  strip "$BUNDLE_DIR/$APP" || true
+fi
+
+# 3) create tarball
+tar -C dist -czf "${ROOT_DIR}/dist/pomotmr-${VERSION}-linux.tar.gz" "$(basename "$BUNDLE_DIR")"
+
+echo "Bundle created:"
+echo "  dist/pomotmr-bundle/"
+echo "  dist/pomotmr-${VERSION}-linux.tar.gz"

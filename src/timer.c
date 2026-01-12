@@ -1,0 +1,173 @@
+#include <bits/time.h>
+#include <ncurses.h>
+#include <stdatomic.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
+#include "timer.h"
+#include "ring.h"
+
+const char* const POMO_STATE_STRINGS[] = {
+    "Short Break",
+    "Long Break",
+    "Focus"
+};
+
+const uint DEFAULT_NUM_SHORT_BREAKS   = 3u;
+const uint DEFAULT_SHORT_BREAK_LENGTH = 300u;
+const uint DEFAULT_LONG_BREAK_LENGTH  = 900u;
+const uint DEFAULT_FOCUS_LENGTH       = 1500u;
+
+
+pomo_timer* new_timer(uint num_short_breaks,
+                        int short_break_length,
+                        int long_break_length,
+                        int focus_length) {
+    pomo_timer* tmr = (pomo_timer*) malloc(sizeof(pomo_timer));
+
+    if (tmr == NULL) {
+        perror("ERROR: malloc");
+        return NULL;
+    }
+
+    tmr -> r_state = PAUSE;
+    tmr -> p_state = FOCUS;
+
+    tmr -> previous_elapsed_time = 0u;
+    tmr -> start_time = 0;
+
+    tmr -> break_counter = 0u;
+    tmr -> num_short_breaks = num_short_breaks;
+    tmr -> break_lengths[SHORT_BREAK] = short_break_length;
+    tmr -> break_lengths[LONG_BREAK]  = long_break_length;
+    tmr -> break_lengths[FOCUS]       = focus_length;
+
+    tmr -> alarm = new_ringer();
+
+    return tmr;
+}
+
+
+void del_timer(pomo_timer* tmr) {
+    if (!tmr) {
+        if (!(tmr -> alarm)) del_ringer(tmr -> alarm);
+        free(tmr);
+    }
+}
+
+
+int get_mono_time() {
+    timespec tp;
+    if (clock_gettime(CLOCK_MONOTONIC, &tp) != 0) {
+        perror("ERROR: clock_gettime");
+        return -1;
+    }
+    return (int) tp.tv_sec;
+}
+
+
+int get_elapsed_time(pomo_timer* tmr) {
+    if (tmr -> r_state == PAUSE || tmr -> r_state == RING) {
+        return tmr -> previous_elapsed_time;
+    }
+
+    int mono_time;
+    if ((mono_time = get_mono_time()) == -1) {
+        fprintf(stderr,"ERROR: get_mono_time\n");
+        return -1;
+    }
+
+    return (mono_time - (tmr -> start_time)) 
+            + (tmr -> previous_elapsed_time);
+}
+
+
+int stop_timer(pomo_timer* tmr) {
+    if (tmr -> r_state == PLAY) {
+        int elapsed_time = get_elapsed_time(tmr);
+
+        if (elapsed_time < 0) {
+            fprintf(stderr,"get_elapsed_time\n");
+            return -1;
+        }
+
+        tmr -> previous_elapsed_time = elapsed_time;
+    }
+    tmr -> r_state = PAUSE;
+    return 0;
+}
+
+
+int start_timer(pomo_timer* tmr) {
+    if (tmr -> r_state == PAUSE || tmr -> r_state == RING) {
+        int mono_time;
+        if ((mono_time = get_mono_time()) == -1) {
+            fprintf(stderr,"get_mono_time\n");
+            return -1;
+        }
+        tmr -> start_time = mono_time;
+    }
+    tmr -> r_state = PLAY;
+    return 0;
+}
+
+
+int toggle_timer(pomo_timer *tmr) {
+    switch (tmr -> r_state) {
+        case PAUSE:
+            if (start_timer(tmr) == -1) {
+                fprintf(stderr, "ERROR: start_timer\n");
+                return -1;
+            }
+            break;
+        case PLAY:
+            if (stop_timer(tmr) == -1) {
+                fprintf(stderr, "stop_timer\n");
+                return -1;
+            }
+            break;
+        case RING:
+            tmr -> r_state = PAUSE;
+            stop_ringer(tmr -> alarm);
+    }
+
+    return 0;
+}
+
+
+void clear_timer(pomo_timer* tmr) {
+    tmr -> r_state = PAUSE;
+    tmr -> previous_elapsed_time = 0;
+    tmr -> start_time = 0;
+}
+
+
+const char* get_p_state_string(pomo_timer* tmr) {
+    return POMO_STATE_STRINGS[(int) tmr -> p_state];
+}
+
+
+void advance_p_state(pomo_timer* tmr) {
+    if (tmr -> p_state == SHORT_BREAK || tmr -> p_state == LONG_BREAK) {
+        tmr -> p_state = FOCUS;
+        tmr -> break_counter = ((tmr -> break_counter) + 1) 
+                                    % (tmr -> num_short_breaks + 1);
+    } else if (tmr -> break_counter == (tmr -> num_short_breaks)) {
+        tmr -> p_state = LONG_BREAK;
+    } else {
+        tmr -> p_state = SHORT_BREAK;
+    }
+}
+
+
+void update_timer(pomo_timer *tmr) {
+    if (get_elapsed_time(tmr) > (tmr -> break_lengths[tmr -> p_state])) {
+        clear_timer(tmr);
+        advance_p_state(tmr);
+        
+        // play alarm sound
+        tmr -> r_state = RING;
+        start_ringer(tmr -> alarm);
+    }
+}
