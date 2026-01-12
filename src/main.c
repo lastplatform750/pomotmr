@@ -1,4 +1,5 @@
 #include <ncurses.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -17,6 +18,7 @@ int main(int argc, char* argv[]) {
     uint long_break_length  = DEFAULT_LONG_BREAK_LENGTH;
     uint focus_length       = DEFAULT_FOCUS_LENGTH;
 
+    // for testing
     if (argc > 1) {
         if (!strcmp(argv[1], "short")) {
             short_break_length = 2;

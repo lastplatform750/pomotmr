@@ -6,7 +6,7 @@
 #include "typedefs.h"
 
 typedef struct {
-    const char *filename;
+    int sound_filepointer;
     uint rate;
     int channels;
     atomic_bool* stop_requested;
@@ -22,7 +22,7 @@ int start_ringer(ringer* r);
 int stop_ringer(ringer* r);
 
 
-int play_sound(const char *filename,
+int play_sound(int fptr,
                uint rate,
                int channels,
                atomic_bool *stop_requested);

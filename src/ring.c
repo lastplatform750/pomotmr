@@ -25,9 +25,12 @@
 
 
 #include <alsa/asoundlib.h>
+#include <linux/limits.h>
 #include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
+#include <string.h>
 
 #include "ring.h"
 
@@ -47,7 +50,7 @@ void* ring_thread_func(void* arg) {
 	}
 
 	while (!atomic_load(r->stop_requested)) {
-        play_sound(r -> filename, 
+        play_sound(r -> sound_filepointer, 
                     r -> rate,
                     r -> channels, 
                     r -> stop_requested);
@@ -58,31 +61,54 @@ void* ring_thread_func(void* arg) {
 
 
 ringer* new_ringer() {
-	ringer* new_r = malloc(sizeof(ringer));
+	ringer* new_r = NULL;
+
+	char buf[PATH_MAX];
+    ssize_t pathsize = -1;
+
+	int fptr = -1;
+
+	new_r = malloc(sizeof(ringer));
 	if (new_r == NULL) {
 		perror("ERROR: malloc");
 		goto error_cleanup;
 	}
 
 	new_r -> stop_requested = malloc(sizeof(atomic_bool));
-
 	if (new_r -> stop_requested == NULL) {
 		perror("ERROR: malloc");
 		goto error_cleanup;
 	} 
 
+	if ((pathsize = readlink("/proc/self/exe", buf, PATH_MAX) == -1)) {
+        fprintf(stderr, "ERROR: Couldn't get path to executable\n");
+        goto error_cleanup;
+    }
+
+	int len = strlen(buf);
+	buf[len - 7] = '\0'; // remove name of executable
+	strcat(buf, "resource/sample.wav");
+
+	fprintf(stderr, "file: %s\n", buf);
+
+	if ((fptr = open(buf, O_RDONLY)) == -1) {
+        fprintf(stderr, "ERROR: Can't open \"%s\"\n",
+                    buf);
+        goto error_cleanup;
+    }
+
 	atomic_init(new_r -> stop_requested, false);
 
 	new_r -> rate     = DEFAULT_RATE;
 	new_r -> channels = DEFAULT_NUM_CHANNELS;
-	new_r -> filename = WAV_FILENAME;
-
+	new_r -> sound_filepointer = fptr;
 
 	return new_r;
 
 	error_cleanup:
 		if (!(new_r -> stop_requested)) free(new_r -> stop_requested);
 		if (!new_r) free(new_r);
+		if (fptr != -1) close(fptr);
 		
 		return NULL;
 }
@@ -91,6 +117,7 @@ ringer* new_ringer() {
 void del_ringer(ringer* r) {
 	if (!r) {
 		if (!(r -> stop_requested)) free(r -> stop_requested);
+		if (r -> sound_filepointer != -1) close(r -> sound_filepointer);
 		free(r);
 	}
 }
@@ -115,7 +142,7 @@ int stop_ringer(ringer* r) {
 }
 
 
-int play_sound(const char* filename,
+int play_sound(int fptr,
                unsigned int rate,
                int channels,
                atomic_bool* stop_requested) {
@@ -126,11 +153,9 @@ int play_sound(const char* filename,
 	snd_pcm_uframes_t frames;
 	char* buff;
 	int buff_size;
-    int fptr;
 
-    if ((fptr = open(filename, O_RDONLY)) == -1) {
-        fprintf(stderr, "ERROR: Can't open \"%s\"\n",
-                    filename);
+    if (fptr == -1) {
+        fprintf(stderr, "ERROR: Invalid filepointer\n");
         return -1;
     }
 
@@ -188,6 +213,11 @@ int play_sound(const char* filename,
     snd_pcm_hw_params_get_period_time(params, &tmp, NULL);
     // loops = (seconds * 1000000) / tmp;  // old approach with seconds
 
+	// seek to beginning of file
+	if (lseek(fptr, 0, SEEK_SET) == -1) {
+		perror("ERROR: lseek");
+	}
+
     // Play until EOF or stop_requested is set.
     while (!atomic_load(stop_requested)) {
         ssize_t r = read(fptr, buff, buff_size);
@@ -227,7 +257,6 @@ int play_sound(const char* filename,
         	pcm_handle = NULL;
     	}
     	if (buff) free(buff);
-    	if (fptr != -1) close(fptr);
 
 		return 0;
 }
