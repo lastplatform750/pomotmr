@@ -1,9 +1,9 @@
 #pragma once
 
-#include "typedefs.h"
-
 #include <stdatomic.h>
 #include <pthread.h>
+
+#include "typedefs.h"
 
 typedef struct {
     const char *filename;
