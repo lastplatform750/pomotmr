@@ -6,7 +6,7 @@ ROOT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/.
 BUILD_DIR="$ROOT_DIR/builddir"
 
 STAGING="$ROOT_DIR/dist/staging"
-BUNDLE_DIR="$ROOT_DIR/dist/pomotmr-bundle"
+BUNDLE_DIR="$ROOT_DIR/dist/pomotmr"
 VERSION=0.1.0
 APP=pomotmr
 
@@ -33,5 +33,5 @@ fi
 tar -C "$ROOT_DIR/dist" -czf "${ROOT_DIR}/dist/pomotmr-${VERSION}-linux.tar.gz" "$(basename "$BUNDLE_DIR")"
 
 echo "Bundle created:"
-echo "  dist/pomotmr-bundle/"
+echo "  dist/pomotmr/"
 echo "  dist/pomotmr-${VERSION}-linux.tar.gz"
