@@ -1,18 +1,20 @@
 #!/bin/sh
-set -eu
 
-BUILD_DIR=builddir
-ROOT_DIR="$(pwd)"
+
+ROOT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/.."
+
+BUILD_DIR="$ROOT_DIR/builddir"
+
 STAGING="$ROOT_DIR/dist/staging"
 BUNDLE_DIR="$ROOT_DIR/dist/pomotmr-bundle"
 VERSION=0.1.0
 APP=pomotmr
 
-# 1) install to staging (ABSOLUTE path!)
+# install to staging
 rm -rf "$STAGING"
 meson install -C "$BUILD_DIR" --destdir="$STAGING"
 
-# 2) compose bundle
+# compose bundle
 rm -rf "$BUNDLE_DIR"
 mkdir -p "$BUNDLE_DIR/resource"
 
@@ -27,7 +29,7 @@ if command -v strip >/dev/null 2>&1; then
   strip "$BUNDLE_DIR/$APP" || true
 fi
 
-# 3) create tarball
+# create tarball
 tar -C dist -czf "${ROOT_DIR}/dist/pomotmr-${VERSION}-linux.tar.gz" "$(basename "$BUNDLE_DIR")"
 
 echo "Bundle created:"
