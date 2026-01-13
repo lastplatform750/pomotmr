@@ -14,10 +14,10 @@ int main(int argc, char* argv[]) {
     interface* ui   = NULL;
     char input      = '\0';
 
-    uint num_short_breaks   = DEFAULT_NUM_SHORT_BREAKS;
-    uint short_break_length = DEFAULT_SHORT_BREAK_LENGTH;
-    uint long_break_length  = DEFAULT_LONG_BREAK_LENGTH;
-    uint focus_length       = DEFAULT_FOCUS_LENGTH;
+    uint num_short_breaks  = DEFAULT_NUM_SHORT_BREAKS;
+    int short_break_length = DEFAULT_SHORT_BREAK_LENGTH;
+    int long_break_length  = DEFAULT_LONG_BREAK_LENGTH;
+    int focus_length       = DEFAULT_FOCUS_LENGTH;
 
     // for testing
     if (argc > 1) {
