@@ -68,13 +68,13 @@ ringer* new_ringer() {
 
 	int fptr = -1;
 
-	new_r = malloc(sizeof(ringer));
+	new_r = (ringer*) malloc(sizeof(ringer));
 	if (new_r == NULL) {
 		perror("ERROR: malloc");
 		goto error_cleanup;
 	}
 
-	new_r -> stop_requested = malloc(sizeof(atomic_bool));
+	new_r -> stop_requested = (atomic_bool*) malloc(sizeof(atomic_bool));
 	if (new_r -> stop_requested == NULL) {
 		perror("ERROR: malloc");
 		goto error_cleanup;
@@ -204,7 +204,7 @@ int play_sound(int fptr,
 
 	snd_pcm_hw_params_get_period_size(params, &frames, 0);
 	buff_size = frames * channels * 2; // 2 bytes/sample for S16_LE
-    buff = malloc(buff_size);
+    buff = (char*) malloc(buff_size);
     if (buff == NULL) {
         perror("ERROR: malloc");
         goto cleanup;

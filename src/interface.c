@@ -31,7 +31,7 @@ int move_indicator(interface* ui, uint new_pos) {
 
 
 interface* new_interface() {
-    interface* ui = malloc(sizeof(interface));
+    interface* ui = (interface*) malloc(sizeof(interface));
     if (ui == NULL) {
         perror("ERROR: malloc");
     }
