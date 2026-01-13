@@ -6,6 +6,7 @@ A crappy ncurses pomodoro timer
 ## dependencies
   * ncurses: for the ui
   * alsa: to play alarm
+  * meson: to build it
 
 ## building
   Run the make_tar.sh script. The thing you want is the "dist/pomotmr" folder
