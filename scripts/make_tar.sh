@@ -10,6 +10,9 @@ BUNDLE_DIR="$ROOT_DIR/dist/pomotmr"
 VERSION=0.1.0
 APP=pomotmr
 
+# setup meson if needed
+meson setup "$BUILD_DIR" "$ROOT_DIR"
+
 # install to staging
 rm -rf "$STAGING"
 meson install -C "$BUILD_DIR" --destdir="$STAGING"
