@@ -5,3 +5,4 @@
 /subprojects/
 /*.swp
 *.o
+*test.log
