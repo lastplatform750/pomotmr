@@ -1,6 +1,5 @@
 /builddir/
 /meson-private/
-/meson.build
 /deps/
 /dist/
 /subprojects/
