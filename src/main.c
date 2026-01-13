@@ -7,6 +7,7 @@
 
 #include "timer.h"
 #include "interface.h"
+#include "defaults.h"
 
 int main(int argc, char* argv[]) {
     pomo_timer* tmr = NULL;
@@ -50,17 +51,17 @@ int main(int argc, char* argv[]) {
         input = getch();
 
         switch (input) {
-            case ' ':
+            case TOGGLE:
                 toggle_timer(tmr);
                 break;
-            case '\n':
+            case SKIP:
                 if (tmr -> r_state == RING) {
                     stop_ringer(tmr -> alarm);
                 }
                 clear_timer(tmr);
                 advance_p_state(tmr);
                 break;
-            case 'c':
+            case CLEAR:
                 if (tmr -> r_state != RING) {
                     clear_timer(tmr);
                 }

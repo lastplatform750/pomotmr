@@ -14,11 +14,6 @@ const char* const POMO_STATE_STRINGS[] = {
     "Focus"
 };
 
-const uint DEFAULT_NUM_SHORT_BREAKS   = 3u;
-const uint DEFAULT_SHORT_BREAK_LENGTH = 300u;
-const uint DEFAULT_LONG_BREAK_LENGTH  = 900u;
-const uint DEFAULT_FOCUS_LENGTH       = 1500u;
-
 
 pomo_timer* new_timer(uint num_short_breaks,
                         int short_break_length,

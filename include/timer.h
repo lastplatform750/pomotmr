@@ -6,21 +6,7 @@
 #include "typedefs.h"
 #include "ring.h"
 
-
-extern const uint DEFAULT_NUM_SHORT_BREAKS;
-extern const uint DEFAULT_SHORT_BREAK_LENGTH;
-extern const uint DEFAULT_LONG_BREAK_LENGTH;
-extern const uint DEFAULT_FOCUS_LENGTH;
-
 extern const char* const POMO_STATE_STRINGS[];
-
-typedef struct {
-    const char *filename;
-    uint rate;
-    int channels;
-    atomic_bool* stop_requested;
-} ringer_args;
-
 
 typedef enum {
     PLAY,
