@@ -1,6 +1,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
+#include "logging.h"
 #include "interface.h"
 #include "timer.h"
 
@@ -33,7 +34,7 @@ int move_indicator(interface* ui, uint new_pos) {
 interface* new_interface() {
     interface* ui = (interface*) malloc(sizeof(interface));
     if (ui == NULL) {
-        perror("ERROR: malloc");
+        LOG_ERRNO("ERROR: malloc");
     }
     return ui;
 }

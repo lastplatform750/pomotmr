@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include "timer.h"
+#include "logging.h"
 #include "ring.h"
 
 const char* const POMO_STATE_STRINGS[] = {
@@ -22,7 +23,7 @@ pomo_timer* new_timer(uint num_short_breaks,
     pomo_timer* tmr = (pomo_timer*) malloc(sizeof(pomo_timer));
 
     if (tmr == NULL) {
-        perror("ERROR: malloc");
+        LOG_ERRNO("ERROR: malloc");
         return NULL;
     }
 
@@ -55,7 +56,7 @@ void del_timer(pomo_timer* tmr) {
 int get_mono_time() {
     timespec tp;
     if (clock_gettime(CLOCK_MONOTONIC, &tp) != 0) {
-        perror("ERROR: clock_gettime");
+        LOG_ERRNO("ERROR: clock_gettime");
         return -1;
     }
     return (int) tp.tv_sec;
@@ -69,7 +70,7 @@ int get_elapsed_time(pomo_timer* tmr) {
 
     int mono_time;
     if ((mono_time = get_mono_time()) == -1) {
-        fprintf(stderr,"ERROR: get_mono_time\n");
+        LOG("ERROR: get_mono_time");
         return -1;
     }
 
@@ -81,7 +82,7 @@ int get_elapsed_time(pomo_timer* tmr) {
 int get_remaining_time(pomo_timer* tmr) {
     int elapsed_time;
     if ((elapsed_time = get_elapsed_time(tmr)) == -1) {
-        fprintf(stderr, "ERROR: get_elapsed_time\n");
+        LOG("ERROR: get_elapsed_time");
         return -1;
     }
     return (tmr -> break_lengths[tmr -> p_state]) - elapsed_time;
@@ -93,7 +94,7 @@ int stop_timer(pomo_timer* tmr) {
         int elapsed_time = get_elapsed_time(tmr);
 
         if (elapsed_time < 0) {
-            fprintf(stderr,"get_elapsed_time\n");
+            LOG("ERROR: get_elapsed_time");
             return -1;
         }
 
@@ -108,7 +109,7 @@ int start_timer(pomo_timer* tmr) {
     if (tmr -> r_state == PAUSE || tmr -> r_state == RING) {
         int mono_time;
         if ((mono_time = get_mono_time()) == -1) {
-            fprintf(stderr,"get_mono_time\n");
+            LOG("ERROR: get_mono_time");
             return -1;
         }
         tmr -> start_time = mono_time;
@@ -122,13 +123,13 @@ int toggle_timer(pomo_timer *tmr) {
     switch (tmr -> r_state) {
         case PAUSE:
             if (start_timer(tmr) == -1) {
-                fprintf(stderr, "ERROR: start_timer\n");
+                LOG("ERROR: start_timer");
                 return -1;
             }
             break;
         case PLAY:
             if (stop_timer(tmr) == -1) {
-                fprintf(stderr, "stop_timer\n");
+                LOG("ERROR: stop_timer");
                 return -1;
             }
             break;

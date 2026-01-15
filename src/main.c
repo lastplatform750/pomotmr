@@ -5,9 +5,11 @@
 #include <pthread.h>
 #include <string.h>
 
+#include "logging.h"
 #include "timer.h"
 #include "interface.h"
 #include "defaults.h"
+
 
 int main(int argc, char* argv[]) {
     pomo_timer* tmr = NULL;
@@ -34,14 +36,14 @@ int main(int argc, char* argv[]) {
                         focus_length);
     
     if (tmr == NULL) {
-        fprintf(stderr, "ERROR: in new_timer\n");
+        LOG("ERROR: new_timer");
         goto error_cleanup;
     }
 
     ui = new_interface();
 
     if (ui == NULL) {
-        fprintf(stderr, "ERROR: in new_interface\n");
+        LOG("ERROR: new_interface");
         goto error_cleanup;
     }
 
@@ -78,6 +80,7 @@ int main(int argc, char* argv[]) {
     return 0;
 
     error_cleanup:
+        LOG("Program Crashed!");
         del_timer(tmr);
         end_interface(ui);
         return -1;

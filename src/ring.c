@@ -32,6 +32,7 @@
 #include <limits.h>
 #include <string.h>
 
+#include "logging.h"
 #include "ring.h"
 
 #define PCM_DEVICE "default"
@@ -45,7 +46,7 @@ void* ring_thread_func(void* arg) {
 	ringer* r = arg;
 
 	if (r == NULL) {
-		fprintf(stderr, "ERROR: Passed NULL to ring_thread_func\n");
+		LOG("ERROR: Passed NULL to ring_thread_func");
 		return NULL;
 	}
 
@@ -70,18 +71,18 @@ ringer* new_ringer() {
 
 	new_r = (ringer*) malloc(sizeof(ringer));
 	if (new_r == NULL) {
-		perror("ERROR: malloc");
+		LOG_ERRNO("ERROR: malloc");
 		goto error_cleanup;
 	}
 
 	new_r -> stop_requested = (atomic_bool*) malloc(sizeof(atomic_bool));
 	if (new_r -> stop_requested == NULL) {
-		perror("ERROR: malloc");
+		LOG_ERRNO("ERROR: malloc");
 		goto error_cleanup;
 	} 
 
 	if ((pathsize = readlink("/proc/self/exe", buf, PATH_MAX) == -1)) {
-        fprintf(stderr, "ERROR: Couldn't get path to executable\n");
+        LOG("ERROR: Couldn't get path to executable");
         goto error_cleanup;
     }
 
@@ -89,12 +90,10 @@ ringer* new_ringer() {
 	buf[len - 7] = '\0'; // remove name of executable
 	strcat(buf, "resource/sample.wav");
 
-	fprintf(stderr, "file: %s\n", buf);
+	//fprintf(stderr, "file: %s\n", buf);
 
 	if ((fptr = open(buf, O_RDONLY)) == -1) {
-        fprintf(stderr, "ERROR: Can't open \"%s\"\n",
-                    buf);
-        goto error_cleanup;
+        LOG_ERRNO("ERROR: Couldn't open \"%s\"", buf);
     }
 
 	atomic_init(new_r -> stop_requested, false);
@@ -124,6 +123,10 @@ void del_ringer(ringer* r) {
 
 
 int start_ringer(ringer* r) {
+	if (r -> sound_filepointer == -1) {
+		LOG("ERROR: No sound file found");
+		return -1;
+	}
 	atomic_store(r -> stop_requested, false);
     pthread_create(&(r -> ring_thread), 
                     NULL, 
@@ -135,6 +138,9 @@ int start_ringer(ringer* r) {
 
 
 int stop_ringer(ringer* r) {
+	if (r -> sound_filepointer == -1) {
+		return -1;
+	}
 	atomic_store(r -> stop_requested, true);
 	pthread_join(r -> ring_thread, NULL);
 
@@ -155,14 +161,14 @@ int play_sound(int fptr,
 	int buff_size;
 
     if (fptr == -1) {
-        fprintf(stderr, "ERROR: Invalid filepointer\n");
+        LOG("ERROR: Invalid filepointer");
         return -1;
     }
 
 	/* Open the PCM device in playback mode */
 	if ((pcm = snd_pcm_open(&pcm_handle, PCM_DEVICE,
 					SND_PCM_STREAM_PLAYBACK, 0)) < 0) 
-		fprintf(stderr, "ERROR: Can't open \"%s\" PCM device. %s\n",
+		LOG("ERROR: Can't open \"%s\" PCM device: %s",
 					PCM_DEVICE, snd_strerror(pcm));
 
 	/* Allocate parameters object and fill it with default values*/
@@ -173,21 +179,21 @@ int play_sound(int fptr,
 	/* Set parameters */
 	if ((pcm = snd_pcm_hw_params_set_access(pcm_handle, params,
 					SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) 
-		fprintf(stderr, "ERROR: Can't set interleaved mode. %s\n", snd_strerror(pcm));
+		LOG("ERROR: Can't set interleaved mode. %s", snd_strerror(pcm));
 
 	if ((pcm = snd_pcm_hw_params_set_format(pcm_handle, params,
 						SND_PCM_FORMAT_S16_LE)) < 0) 
-		fprintf(stderr, "ERROR: Can't set format. %s\n", snd_strerror(pcm));
+		LOG("ERROR: Can't set format. %s", snd_strerror(pcm));
 
 	if ((pcm = snd_pcm_hw_params_set_channels(pcm_handle, params, channels)) < 0) 
-		fprintf(stderr, "ERROR: Can't set channels number. %s\n", snd_strerror(pcm));
+		LOG("ERROR: Can't set channels number. %s", snd_strerror(pcm));
 
 	if ((pcm = snd_pcm_hw_params_set_rate_near(pcm_handle, params, &rate, 0)) < 0) 
-		fprintf(stderr, "ERROR: Can't set rate. %s\n", snd_strerror(pcm));
+		LOG("ERROR: Can't set rate. %s", snd_strerror(pcm));
 
 	/* Write parameters */
 	if ((pcm = snd_pcm_hw_params(pcm_handle, params)) < 0)
-		fprintf(stderr, "ERROR: Can't set hardware parameters. %s\n", snd_strerror(pcm));
+		LOG("ERROR: Can't set hardware parameters. %s", snd_strerror(pcm));
 
 	/* Resume information */
 	//printf("PCM name: '%s'\n", snd_pcm_name(pcm_handle));
@@ -206,7 +212,7 @@ int play_sound(int fptr,
 	buff_size = frames * channels * 2; // 2 bytes/sample for S16_LE
     buff = (char*) malloc(buff_size);
     if (buff == NULL) {
-        perror("ERROR: malloc");
+        LOG_ERRNO("ERROR: malloc");
         goto cleanup;
     }
 
@@ -215,7 +221,8 @@ int play_sound(int fptr,
 
 	// seek to beginning of file
 	if (lseek(fptr, 0, SEEK_SET) == -1) {
-		perror("ERROR: lseek");
+		LOG_ERRNO("ERROR: lseek");
+		goto cleanup;
 	}
 
     // Play until EOF or stop_requested is set.
@@ -226,7 +233,7 @@ int play_sound(int fptr,
             if (lseek(fptr, 0, SEEK_SET) == -1) break;
             continue;
         } else if (r < 0) {
-            perror("ERROR: read");
+            LOG_ERRNO("ERROR: read");
             break;
         }
 
@@ -236,7 +243,7 @@ int play_sound(int fptr,
             // underrun
             snd_pcm_prepare(pcm_handle);
         } else if (pcm < 0) {
-            fprintf(stderr, "ERROR: Can't write to PCM device: %s\n",
+            LOG("ERROR: Can't write to PCM device: %s",
                     snd_strerror(pcm));
 					break;
         }
