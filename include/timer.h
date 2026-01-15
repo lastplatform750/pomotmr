@@ -39,7 +39,8 @@ typedef struct {
 pomo_timer* new_timer(uint num_short_breaks,
                         int short_break_length,
                         int long_break_length,
-                        int focus_length);
+                        int focus_length,
+                        char* alarm_filename);
 
 // free the memory for tmr and clear the pointer
 void del_timer(pomo_timer* tmr);

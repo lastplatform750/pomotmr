@@ -1,11 +1,11 @@
 #include <ncurses.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
 
 #include "logging.h"
+#include "cl_args.h"
 #include "timer.h"
 #include "interface.h"
 #include "defaults.h"
@@ -16,24 +16,15 @@ int main(int argc, char* argv[]) {
     interface* ui   = NULL;
     char input      = '\0';
 
-    uint num_short_breaks  = DEFAULT_NUM_SHORT_BREAKS;
-    int short_break_length = DEFAULT_SHORT_BREAK_LENGTH;
-    int long_break_length  = DEFAULT_LONG_BREAK_LENGTH;
-    int focus_length       = DEFAULT_FOCUS_LENGTH;
+    cl_args opts;
 
-    // for testing
-    if (argc > 1) {
-        if (!strcmp(argv[1], "short")) {
-            short_break_length = 2;
-            long_break_length  = 3;
-            focus_length       = 4;
-        }
-    }
+    get_cl_args(&opts, argc, argv);
 
-    tmr = new_timer(num_short_breaks,
-                        short_break_length,
-                        long_break_length,
-                        focus_length);
+    tmr = new_timer(opts.num_short_breaks,
+                    opts.short_break_length,
+                    opts.long_break_length,
+                    opts.focus_length,
+                    opts.alarm_filename);
     
     if (tmr == NULL) {
         LOG("ERROR: new_timer");

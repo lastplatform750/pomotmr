@@ -8,6 +8,7 @@ curses_dep = dependency('ncurses', required : true)
 
 # an executable that links the library
 exe = executable('pomotmr',
+                 'cl_args.c',
                  'ring.c',
                  'timer.c',
                  'interface.c',

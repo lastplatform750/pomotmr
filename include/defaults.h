@@ -18,6 +18,8 @@ static const uint DEFAULT_NUM_SHORT_BREAKS   = 3u;
 #define SKIP   '\n'
 #define CLEAR  'c'
 
+#define WAV_FILENAME "resource/sample.wav"
+
 
 // Sanity checks to make sure constants are good
 _Static_assert(DEFAULT_FOCUS_LENGTH > 0,

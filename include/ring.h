@@ -6,14 +6,14 @@
 #include "typedefs.h"
 
 typedef struct {
-    int sound_filepointer;
+    char* alarm_filename;
     uint rate;
     int channels;
     atomic_bool* stop_requested;
     pthread_t ring_thread;
 } ringer;
 
-ringer* new_ringer();
+ringer* new_ringer(char* alarm_filename);
 
 void del_ringer(ringer* r);
 

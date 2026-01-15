@@ -25,12 +25,12 @@
 
 
 #include <alsa/asoundlib.h>
+#include <fcntl.h>
 #include <linux/limits.h>
 #include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <string.h>
 
 #include "logging.h"
 #include "ring.h"
@@ -50,24 +50,27 @@ void* ring_thread_func(void* arg) {
 		return NULL;
 	}
 
+	int alarm_fptr = open(r -> alarm_filename, O_RDONLY);
+
+	if (alarm_fptr == -1) {
+		LOG_ERRNO("ERROR: Couldn't open \"%s\"", r -> alarm_filename);
+		return NULL;
+	}
+
 	while (!atomic_load(r->stop_requested)) {
-        play_sound(r -> sound_filepointer, 
+        play_sound(alarm_fptr, 
                     r -> rate,
                     r -> channels, 
                     r -> stop_requested);
     }
 
+	if (alarm_fptr != -1) close(alarm_fptr);
     return NULL;
 }
 
 
-ringer* new_ringer() {
+ringer* new_ringer(char* alarm_filename) {
 	ringer* new_r = NULL;
-
-	char buf[PATH_MAX];
-    ssize_t pathsize = -1;
-
-	int fptr = -1;
 
 	new_r = (ringer*) malloc(sizeof(ringer));
 	if (new_r == NULL) {
@@ -81,33 +84,17 @@ ringer* new_ringer() {
 		goto error_cleanup;
 	} 
 
-	if ((pathsize = readlink("/proc/self/exe", buf, PATH_MAX) == -1)) {
-        LOG("ERROR: Couldn't get path to executable");
-        goto error_cleanup;
-    }
-
-	int len = strlen(buf);
-	buf[len - 7] = '\0'; // remove name of executable
-	strcat(buf, "resource/sample.wav");
-
-	//fprintf(stderr, "file: %s\n", buf);
-
-	if ((fptr = open(buf, O_RDONLY)) == -1) {
-        LOG_ERRNO("ERROR: Couldn't open \"%s\"", buf);
-    }
-
 	atomic_init(new_r -> stop_requested, false);
 
 	new_r -> rate     = DEFAULT_RATE;
 	new_r -> channels = DEFAULT_NUM_CHANNELS;
-	new_r -> sound_filepointer = fptr;
+	new_r -> alarm_filename = alarm_filename;
 
 	return new_r;
 
 	error_cleanup:
 		if (!(new_r -> stop_requested)) free(new_r -> stop_requested);
 		if (!new_r) free(new_r);
-		if (fptr != -1) close(fptr);
 		
 		return NULL;
 }
@@ -116,17 +103,12 @@ ringer* new_ringer() {
 void del_ringer(ringer* r) {
 	if (!r) {
 		if (!(r -> stop_requested)) free(r -> stop_requested);
-		if (r -> sound_filepointer != -1) close(r -> sound_filepointer);
 		free(r);
 	}
 }
 
 
 int start_ringer(ringer* r) {
-	if (r -> sound_filepointer == -1) {
-		LOG("ERROR: No sound file found");
-		return -1;
-	}
 	atomic_store(r -> stop_requested, false);
     pthread_create(&(r -> ring_thread), 
                     NULL, 
@@ -138,9 +120,6 @@ int start_ringer(ringer* r) {
 
 
 int stop_ringer(ringer* r) {
-	if (r -> sound_filepointer == -1) {
-		return -1;
-	}
 	atomic_store(r -> stop_requested, true);
 	pthread_join(r -> ring_thread, NULL);
 

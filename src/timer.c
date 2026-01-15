@@ -2,7 +2,6 @@
 #include <ncurses.h>
 #include <stdatomic.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <time.h>
 
 #include "timer.h"
@@ -19,7 +18,8 @@ const char* const POMO_STATE_STRINGS[] = {
 pomo_timer* new_timer(uint num_short_breaks,
                         int short_break_length,
                         int long_break_length,
-                        int focus_length) {
+                        int focus_length,
+                        char* alarm_filename) {
     pomo_timer* tmr = (pomo_timer*) malloc(sizeof(pomo_timer));
 
     if (tmr == NULL) {
@@ -39,7 +39,7 @@ pomo_timer* new_timer(uint num_short_breaks,
     tmr -> break_lengths[LONG_BREAK]  = long_break_length;
     tmr -> break_lengths[FOCUS]       = focus_length;
 
-    tmr -> alarm = new_ringer();
+    tmr -> alarm = new_ringer(alarm_filename);
 
     return tmr;
 }
