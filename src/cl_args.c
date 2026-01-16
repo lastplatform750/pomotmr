@@ -10,7 +10,7 @@
 
 int get_default_alarm_path(cl_args* opts) {
     ssize_t pathsize = -1;
-	if ((pathsize = readlink("/proc/self/exe", opts -> alarm_filename, PATH_MAX) == -1)) {
+	if ((pathsize = readlink("/proc/self/exe", opts -> alarm_filename, PATH_MAX)) == -1) {
         LOG("ERROR: Couldn't get path to executable");
         return -1;
     }

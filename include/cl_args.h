@@ -7,7 +7,7 @@
 #define TEST "--test"
 #define ALARM_FILENAME "-a"
 
-#define DEFAULT_ALARM_FILENAME "resource/sample.wav"
+#define DEFAULT_ALARM_FILENAME "/resource/sample.wav"
 
 typedef struct {
     uint num_short_breaks;
