@@ -93,9 +93,7 @@ ringer* new_ringer(char* alarm_filename) {
 	return new_r;
 
 	error_cleanup:
-		if (!(new_r -> stop_requested)) free(new_r -> stop_requested);
-		if (!new_r) free(new_r);
-		
+		del_ringer(new_r);
 		return NULL;
 }
 

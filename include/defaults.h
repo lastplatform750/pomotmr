@@ -5,7 +5,7 @@
 // How many short breaks before a long break
 static const uint DEFAULT_NUM_SHORT_BREAKS   = 3u;
 
-// Default lengths of the pomo sections
+// Default lengths of the pomo sections, in seconds
 // Not uints because most funcs involving time use ints
 // Need to use define for the static asserts
 #define DEFAULT_SHORT_BREAK_LENGTH 300
@@ -18,7 +18,10 @@ static const uint DEFAULT_NUM_SHORT_BREAKS   = 3u;
 #define SKIP   '\n'
 #define CLEAR  'c'
 
-#define WAV_FILENAME "resource/sample.wav"
+#define DEFAULT_SOCKET_PATH "/tmp/pomotmr.sock"
+
+static const int SOCKET_PERMISSIONS = 0666;
+static const int SOCKET_MAX_REQUESTS = 5;
 
 
 // Sanity checks to make sure constants are good

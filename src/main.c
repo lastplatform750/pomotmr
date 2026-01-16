@@ -3,17 +3,38 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
+#include <signal.h>
 
 #include "logging.h"
 #include "cl_args.h"
 #include "timer.h"
 #include "interface.h"
 #include "defaults.h"
+#include "server.h"
+
+static bool sig_raised = false;
+
+static void sig_handler(int sig) {
+    (void) sig;
+    sig_raised = true;
+}
 
 
 int main(int argc, char* argv[]) {
+    // Setup signal handling to make sure the socket file gets
+    // deleted on exit
+    struct sigaction sa;
+    sa.sa_handler = sig_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
+    sigaction(SIGHUP, &sa, NULL);
+
     pomo_timer* tmr = NULL;
-    interface* ui   = NULL;
+    interface*  ui  = NULL;
+    server*     ts  = NULL;
+
     char input      = '\0';
 
     cl_args opts;
@@ -31,6 +52,13 @@ int main(int argc, char* argv[]) {
         goto error_cleanup;
     }
 
+    ts = new_server(DEFAULT_SOCKET_PATH);
+
+    if (ts == NULL) {
+        LOG("ERROR: new_server");
+        goto error_cleanup;
+    }
+
     ui = new_interface();
 
     if (ui == NULL) {
@@ -38,9 +66,10 @@ int main(int argc, char* argv[]) {
         goto error_cleanup;
     }
 
+    start_server(ts);
     start_interface(ui, tmr);
-
-    while (input != 'q') {
+    
+    while (input != 'q' && sig_raised == false) {
         input = getch();
 
         switch (input) {
@@ -62,17 +91,21 @@ int main(int argc, char* argv[]) {
         }
 
         update_timer(tmr);
+        update_server(ts, tmr);
         update_ui(ui, tmr);
     }
 
-    del_timer(tmr);
+    stop_server(ts);
+    del_server(ts);
     end_interface(ui);
+    del_timer(tmr);
 
     return 0;
 
     error_cleanup:
         LOG("Program Crashed!");
-        del_timer(tmr);
+        del_server(ts);
         end_interface(ui);
+        del_timer(tmr);
         return -1;
 }
