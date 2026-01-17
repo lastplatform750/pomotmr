@@ -12,3 +12,8 @@ for file in include/*.h
 do
     sed -i 's/ \*\([^ /]\)/* \1/g' $file
 done
+
+for file in tests/*.c
+do
+    sed -i 's/ \*\([^ /]\)/* \1/g' $file
+done

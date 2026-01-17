@@ -30,9 +30,9 @@ int move_indicator(interface* ui, uint new_pos) {
 }
 
 interface* new_interface() {
-  interface* ui = (interface* )malloc(sizeof(interface));
+  interface* ui = (interface* )calloc(1, sizeof(interface));
   if (ui == NULL) {
-    LOG_ERRNO("ERROR: malloc");
+    LOG_ERRNO("ERROR: calloc");
   }
   return ui;
 }

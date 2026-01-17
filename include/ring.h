@@ -1,5 +1,6 @@
 #pragma once
 
+#include <alsa/asoundlib.h>
 #include <pthread.h>
 #include <stdatomic.h>
 
@@ -9,6 +10,7 @@ typedef struct {
   char* alarm_filename;
   uint rate;
   int channels;
+  snd_pcm_t* pcm_handle;
   atomic_bool* stop_requested;
   pthread_t ring_thread;
 } ringer;

@@ -1,11 +1,15 @@
 tests_enabled = get_option('tests')
 
 if tests_enabled
+  alsa_dep = dependency('alsa', required : true)
+
   inc = include_directories('..' / 'include')
 
-  test_exe = executable('test_example',
-    'test_main.c',
+  ring_test_exe = executable('ring_test',
+    '../src/ring.c',
+    'ring_test.c',
+    dependencies: [alsa_dep],
     include_directories: inc)
 
-  test('unit_example', test_exe)
+  test('ring_test', ring_test_exe, timeout: 60)
 endif
