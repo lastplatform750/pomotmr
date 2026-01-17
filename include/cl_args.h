@@ -10,17 +10,16 @@
 #define SOCKET_PATH "-s"
 #define ALARM_PATH "-a"
 
-
 typedef struct {
-    uint num_short_breaks;
-    int short_break_length;
-    int long_break_length;
-    int focus_length;
-    bool server_enabled;
-    bool alarm_enabled;
-    char* alarm_path;
-    char* socket_path;
-   
+  uint num_short_breaks;
+  int short_break_length;
+  int long_break_length;
+  int focus_length;
+  bool server_enabled;
+  bool alarm_enabled;
+  char* alarm_path;
+  char* socket_path;
+
 } cl_args;
 
 cl_args* get_cl_args(int argc, char* argv[]);

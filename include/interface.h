@@ -5,8 +5,8 @@
 #include "timer.h"
 
 typedef struct interface {
-    bool started;
-    uint indicator_pos;
+  bool started;
+  uint indicator_pos;
 } interface;
 
 interface* new_interface();

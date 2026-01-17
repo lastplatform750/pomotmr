@@ -3,46 +3,35 @@
 #include <pthread.h>
 #include <stdatomic.h>
 
-#include "typedefs.h"
 #include "ring.h"
+#include "typedefs.h"
 
 extern const char* const POMO_STATE_STRINGS[];
 
-typedef enum {
-    PLAY,
-    PAUSE,
-    RING
-} run_state;
+typedef enum { PLAY, PAUSE, RING } run_state;
 
-typedef enum {
-    SHORT_BREAK,
-    LONG_BREAK,
-    FOCUS
-} pomo_state;
+typedef enum { SHORT_BREAK, LONG_BREAK, FOCUS } pomo_state;
 
 typedef struct {
-    uint num_short_breaks;
-    uint break_counter;
+  uint num_short_breaks;
+  uint break_counter;
 
-    // These are ints cause of error checking
-    // and to avoid comparisons betweens ints and uints
-    int previous_elapsed_time;
-    int start_time;
-    int break_lengths[3];
+  // These are ints cause of error checking
+  // and to avoid comparisons betweens ints and uints
+  int previous_elapsed_time;
+  int start_time;
+  int break_lengths[3];
 
-    run_state r_state;
-    pomo_state p_state;
+  run_state r_state;
+  pomo_state p_state;
 
-    bool alarm_enabled;
-    ringer* alarm;
+  bool alarm_enabled;
+  ringer* alarm;
 } pomo_timer;
 
-pomo_timer* new_timer(uint num_short_breaks,
-                        int short_break_length,
-                        int long_break_length,
-                        int focus_length,
-                        bool alarm_enabled,
-                        char* alarm_path);
+pomo_timer* new_timer(uint num_short_breaks, int short_break_length,
+                      int long_break_length, int focus_length,
+                      bool alarm_enabled, char* alarm_path);
 
 // free the memory for tmr and clear the pointer
 void del_timer(pomo_timer* tmr);
