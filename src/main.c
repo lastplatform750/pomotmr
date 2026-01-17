@@ -35,8 +35,6 @@ int main(int argc, char* argv[]) {
     interface*  ui  = NULL;
     server*     ts  = NULL;
 
-    char input      = '\0';
-
     cl_args* opts = get_cl_args(argc, argv);
 
     if (opts == NULL) {
@@ -69,8 +67,10 @@ int main(int argc, char* argv[]) {
             LOG("ERROR: new_server, disabling server");
             opts -> server_enabled = false;
         } else {
+            // don't need socket_path anymore, clear it
             if (opts -> socket_path != NULL) free(opts -> socket_path);
             opts -> socket_path = NULL;
+
             if (start_server(ts) == -1) {
                 LOG("ERROR: start_server, disabling server");
                 opts -> server_enabled = false;
@@ -79,6 +79,8 @@ int main(int argc, char* argv[]) {
     }
 
     start_interface(ui, tmr);
+    
+    char input      = '\0';
     
     while (input != 'q' && sig_raised == false) {
         input = getch();

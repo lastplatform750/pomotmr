@@ -64,7 +64,10 @@ void* server_thread_func(void* arg) {
         if (client_fd == -1) {
             if (errno == EINTR
                 || errno == EAGAIN
-                || errno == EWOULDBLOCK) continue;
+                || errno == EWOULDBLOCK) {
+                    sleep(1);
+                    continue;
+            }
             LOG_ERRNO("ERROR: accept");
             break;
         }
