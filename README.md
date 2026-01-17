@@ -26,8 +26,8 @@ A crappy ncurses pomodoro timer
 ## command line options
   * **--no-alarm**: don't play a sound at the end of pomo sections
   * **--server**: enable the unix socket
-  * **-a <path>**: set the path for the alarm sound
-  * **-s <path>**: set the path for the socket
+  * **-a \<path\>**: set the path for the alarm sound
+  * **-s \<path\>**: set the path for the socket
 
   * **--test**: make pomo sections really short (for testing)
   
