@@ -18,9 +18,16 @@ static const uint DEFAULT_NUM_SHORT_BREAKS   = 3u;
 #define SKIP   '\n'
 #define CLEAR  'c'
 
+// (relative) path to the default alarm sound
 #define DEFAULT_ALARM_PATH "resource/sample.wav"
+
+// the file where the errors get logged to
+#define DEFAULT_ERROR_LOG "error.log"
+
+// default path for the server socket
 #define DEFAULT_SOCKET_PATH "/tmp/pomotmr.sock"
 
+// socket settings for the server
 static const int SOCKET_PERMISSIONS = 0666;
 static const int SOCKET_MAX_REQUESTS = 5;
 

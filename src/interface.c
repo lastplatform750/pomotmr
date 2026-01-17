@@ -5,7 +5,8 @@
 #include "interface.h"
 #include "timer.h"
 
-const uint TIMEOUT_LENGTH = 100;
+// How long getch will block
+const uint TIMEOUT_LENGTH = 500;
 
 const uint COL_BLOCK_1 = 2;
 const uint COL_BLOCK_2 = 30;
@@ -45,7 +46,7 @@ int start_interface(interface* ui, pomo_timer* tmr) {
     cbreak();              // disable line buffering
     noecho();              // don't echo typed characters
     keypad(stdscr, TRUE);  // enable arrow keys (don't need?)
-    nodelay(stdscr, TRUE); // don't block for input
+    // nodelay(stdscr, TRUE); // don't block for input
     curs_set(0);           // hide cursor
     timeout(TIMEOUT_LENGTH);
 

@@ -4,6 +4,8 @@
 #include <pthread.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "logging.h"
 #include "cl_args.h"
@@ -19,8 +21,25 @@ static void sig_handler(int sig) {
     sig_raised = true;
 }
 
+void del_all(server* ts, pomo_timer* tmr, interface* ui, cl_args* opts) {
+    del_server(ts);
+    del_interface(ui);
+    del_timer(tmr);
+    del_args(opts);
+}
+
 
 int main(int argc, char* argv[]) {
+    // print errors in a file instead of on the screen
+    FILE* error_log = freopen(DEFAULT_ERROR_LOG, "w", stderr);
+
+    if (error_log == NULL) {
+        LOG_ERRNO("ERROR: freopen");
+    } else {
+        // flush on each newline
+        setvbuf(stderr, NULL, _IOLBF, 0);
+    }
+
     // Setup signal handling to make sure the socket file gets
     // deleted on exit
     struct sigaction sa;
@@ -30,6 +49,7 @@ int main(int argc, char* argv[]) {
     sigaction(SIGINT, &sa, NULL);
     sigaction(SIGTERM, &sa, NULL);
     sigaction(SIGHUP, &sa, NULL);
+    signal(SIGPIPE, SIG_IGN); // don't exit on pipe issues
 
     pomo_timer* tmr = NULL;
     interface*  ui  = NULL;
@@ -70,16 +90,12 @@ int main(int argc, char* argv[]) {
             // don't need socket_path anymore, clear it
             if (opts -> socket_path != NULL) free(opts -> socket_path);
             opts -> socket_path = NULL;
-
-            if (start_server(ts) == -1) {
-                LOG("ERROR: start_server, disabling server");
-                opts -> server_enabled = false;
-            }
         }
     }
 
     start_interface(ui, tmr);
-    
+    update_ui(ui, tmr);
+
     char input      = '\0';
     
     while (input != 'q' && sig_raised == false) {
@@ -111,22 +127,19 @@ int main(int argc, char* argv[]) {
         
     }
 
-    if (opts -> server_enabled == true) {
-        stop_server(ts);
+    del_all(ts, tmr, ui, opts);
+
+    // unlink the error log if its empty
+    struct stat st;
+    if (stat(DEFAULT_ERROR_LOG, &st) == 0
+                && st.st_size == 0) {
+        unlink(DEFAULT_ERROR_LOG);
     }
-    
-    del_server(ts);
-    del_interface(ui);
-    del_timer(tmr);
-    del_args(opts);
 
     return 0;
 
     error_cleanup:
         LOG("Program Crashed!");
-        del_server(ts);
-        del_interface(ui);
-        del_timer(tmr);
-        del_args(opts);
+        del_all(ts, tmr, ui, opts);
         return -1;
 }
