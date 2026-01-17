@@ -33,7 +33,7 @@ void* client_thread_func(void* arg) {
     pthread_detach(pthread_self());
 
     // only need 8 * log(2)/log(10) * sizeof(int) < 4 * sizeof(int) digits
-    // to hold the string version of an int
+    // to hold the base 10 string version of an int
     char buf[4 * sizeof(int)];
 
     int total_write = snprintf(buf, sizeof(buf), "%i", remaining_time);
