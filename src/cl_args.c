@@ -27,7 +27,7 @@ char* init_field(const char* source, int max_len) {
 }
 
 int get_default_alarm_path(cl_args* opts) {
-    char buf[PATH_MAX];
+    char buf[PATH_MAX] = {0};
 
     ssize_t pathsize = -1;
 	if ((pathsize = readlink("/proc/self/exe", buf, PATH_MAX)) == -1) {
@@ -50,11 +50,12 @@ int get_default_alarm_path(cl_args* opts) {
         LOG("ERROR: Default alarm file path too long");
         return -1;
     } else {
-        opts -> alarm_path = malloc(total_len);
+        opts -> alarm_path = calloc(total_len + 1, sizeof(char));
         if (opts -> alarm_path == NULL) {
             LOG_ERRNO("ERROR: malloc");
         }
 
+        strcpy(opts -> alarm_path, buf);
         strcat(opts -> alarm_path, DEFAULT_ALARM_PATH);
     }
 

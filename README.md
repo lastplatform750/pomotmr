@@ -16,7 +16,14 @@ A crappy ncurses pomodoro timer
   
   The default path for the socket is /tmp/pomotmr.sock
 
-  Right now all the socket does is send out the remaining time (in seconds)
+  The socket sends out a character for what the current pomo section is, then sends out the remaining section time (in seconds).
+
+  The three possible characters (all capitals) for the pomo sections are:
+  * **F**: Focus section
+  * **S**: Short break section
+  * **L**: Long break section
+
+  For example, if the timer is in the focus section with 132 seconds left, the socket sends out "F132"
 
 ## controls
   * **space**: toggles play/pause, and stops the alarm sound

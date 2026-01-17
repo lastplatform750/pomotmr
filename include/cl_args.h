@@ -11,7 +11,6 @@
 #define ALARM_PATH "-a"
 
 
-
 typedef struct {
     uint num_short_breaks;
     int short_break_length;
