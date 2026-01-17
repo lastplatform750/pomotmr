@@ -33,6 +33,7 @@ typedef struct {
     run_state r_state;
     pomo_state p_state;
 
+    bool alarm_enabled;
     ringer* alarm;
 } pomo_timer;
 
@@ -40,7 +41,8 @@ pomo_timer* new_timer(uint num_short_breaks,
                         int short_break_length,
                         int long_break_length,
                         int focus_length,
-                        char* alarm_filename);
+                        bool alarm_enabled,
+                        char* alarm_path);
 
 // free the memory for tmr and clear the pointer
 void del_timer(pomo_timer* tmr);

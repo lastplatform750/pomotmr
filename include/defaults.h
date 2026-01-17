@@ -18,6 +18,7 @@ static const uint DEFAULT_NUM_SHORT_BREAKS   = 3u;
 #define SKIP   '\n'
 #define CLEAR  'c'
 
+#define DEFAULT_ALARM_PATH "resource/sample.wav"
 #define DEFAULT_SOCKET_PATH "/tmp/pomotmr.sock"
 
 static const int SOCKET_PERMISSIONS = 0666;

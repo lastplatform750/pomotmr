@@ -99,8 +99,8 @@ ringer* new_ringer(char* alarm_filename) {
 
 
 void del_ringer(ringer* r) {
-	if (!r) {
-		if (!(r -> stop_requested)) free(r -> stop_requested);
+	if (r != NULL) {
+		if ((r -> stop_requested) != NULL) free(r -> stop_requested);
 		free(r);
 	}
 }

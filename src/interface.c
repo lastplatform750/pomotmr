@@ -66,9 +66,9 @@ int start_interface(interface* ui, pomo_timer* tmr) {
 }
 
 
-int end_interface(interface* ui) {
+int del_interface(interface* ui) {
     endwin();
-    if (!ui) free(ui);
+    if (ui != NULL) free(ui);
     return 0;
 }
 

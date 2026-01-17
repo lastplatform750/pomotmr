@@ -19,7 +19,8 @@ pomo_timer* new_timer(uint num_short_breaks,
                         int short_break_length,
                         int long_break_length,
                         int focus_length,
-                        char* alarm_filename) {
+                        bool alarm_enabled,
+                        char* alarm_path) {
     pomo_timer* tmr = (pomo_timer*) malloc(sizeof(pomo_timer));
 
     if (tmr == NULL) {
@@ -39,15 +40,25 @@ pomo_timer* new_timer(uint num_short_breaks,
     tmr -> break_lengths[LONG_BREAK]  = long_break_length;
     tmr -> break_lengths[FOCUS]       = focus_length;
 
-    tmr -> alarm = new_ringer(alarm_filename);
+    tmr -> alarm_enabled = alarm_enabled;
 
+    if (alarm_enabled && alarm_path != NULL) {
+        tmr -> alarm = new_ringer(alarm_path);
+        if (tmr -> alarm == NULL) {
+            LOG("ERROR: new_ringer, disabling alarm");
+            tmr -> alarm_enabled = false;
+        }
+    } else {
+        tmr -> alarm = NULL; // alarm disabled
+    }
+    
     return tmr;
 }
 
 
 void del_timer(pomo_timer* tmr) {
-    if (!tmr) {
-        if (!(tmr -> alarm)) del_ringer(tmr -> alarm);
+    if (tmr != NULL) {
+        if ((tmr -> alarm) != NULL) del_ringer(tmr -> alarm);
         free(tmr);
     }
 }
@@ -135,7 +146,9 @@ int toggle_timer(pomo_timer *tmr) {
             break;
         case RING:
             tmr -> r_state = PAUSE;
-            stop_ringer(tmr -> alarm);
+            if (tmr -> alarm_enabled == true) {
+                stop_ringer(tmr -> alarm);
+            }
     }
 
     return 0;
@@ -174,6 +187,8 @@ void update_timer(pomo_timer *tmr) {
         
         // play alarm sound
         tmr -> r_state = RING;
-        start_ringer(tmr -> alarm);
+        if ((tmr -> alarm_enabled) == true) {
+            start_ringer(tmr -> alarm);
+        }
     }
 }

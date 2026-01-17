@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include "logging.h"
 #include "cl_args.h"
@@ -37,25 +38,22 @@ int main(int argc, char* argv[]) {
 
     char input      = '\0';
 
-    cl_args opts;
+    cl_args* opts = get_cl_args(argc, argv);
 
-    get_cl_args(&opts, argc, argv);
-
-    tmr = new_timer(opts.num_short_breaks,
-                    opts.short_break_length,
-                    opts.long_break_length,
-                    opts.focus_length,
-                    opts.alarm_filename);
-    
-    if (tmr == NULL) {
-        LOG("ERROR: new_timer");
+    if (opts == NULL) {
+        LOG("ERROR: get_cl_args");
         goto error_cleanup;
     }
 
-    ts = new_server(DEFAULT_SOCKET_PATH);
-
-    if (ts == NULL) {
-        LOG("ERROR: new_server");
+    tmr = new_timer(opts -> num_short_breaks,
+                    opts -> short_break_length,
+                    opts -> long_break_length,
+                    opts -> focus_length,
+                    opts -> alarm_enabled,
+                    opts -> alarm_path);
+    
+    if (tmr == NULL) {
+        LOG("ERROR: new_timer");
         goto error_cleanup;
     }
 
@@ -66,7 +64,21 @@ int main(int argc, char* argv[]) {
         goto error_cleanup;
     }
 
-    start_server(ts);
+    if (opts -> server_enabled == true) {
+        ts = new_server(opts -> socket_path);
+        if (ts == NULL) {
+            LOG("ERROR: new_server, disabling server");
+            opts -> server_enabled = false;
+        } else {
+            if (opts -> socket_path != NULL) free(opts -> socket_path);
+            opts -> socket_path = NULL;
+            if (start_server(ts) == -1) {
+                LOG("ERROR: start_server, disabling server");
+                opts -> server_enabled = false;
+            }
+        }
+    }
+
     start_interface(ui, tmr);
     
     while (input != 'q' && sig_raised == false) {
@@ -91,21 +103,29 @@ int main(int argc, char* argv[]) {
         }
 
         update_timer(tmr);
-        update_server(ts, tmr);
         update_ui(ui, tmr);
+        if (opts -> server_enabled == true) {
+            update_server(ts, tmr);
+        }
+        
     }
 
-    stop_server(ts);
+    if (opts -> server_enabled == true) {
+        stop_server(ts);
+    }
+    
     del_server(ts);
-    end_interface(ui);
+    del_interface(ui);
     del_timer(tmr);
+    del_args(opts);
 
     return 0;
 
     error_cleanup:
         LOG("Program Crashed!");
         del_server(ts);
-        end_interface(ui);
+        del_interface(ui);
         del_timer(tmr);
+        del_args(opts);
         return -1;
 }
