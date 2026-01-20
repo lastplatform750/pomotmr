@@ -20,7 +20,7 @@ error_log* open_log(int argc, char* argv[]) {
   // so that errors can be properly logged for as much as possible
   int arg_counter = 1;
   while (arg_counter < argc) {
-    if (strcmp(argv[arg_counter], ERROR_PATH) && arg_counter + 1 < argc) {
+    if (strcmp(argv[arg_counter], ERROR_PATH) == 0 && arg_counter + 1 < argc) {
       new_log->path = argv[arg_counter + 1];
       break;
     }

@@ -35,6 +35,7 @@ A crappy ncurses pomodoro timer
   * **--server**: enable the unix socket
   * **-a \<path\>**: set the path for the alarm sound
   * **-s \<path\>**: set the path for the socket
+  * **-l \<path\>**: set the path for error logging
 
   * **--test**: make pomo sections really short (for testing)
   
