@@ -52,7 +52,7 @@ int get_default_alarm_path(cl_args* opts) {
   } else {
     opts->alarm_path = calloc(total_len + 1, sizeof(char));
     if (opts->alarm_path == NULL) {
-      LOG_ERRNO("ERROR: malloc");
+      LOG_ERRNO("ERROR: calloc");
     }
 
     strcpy(opts->alarm_path, buf);

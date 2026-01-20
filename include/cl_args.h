@@ -4,12 +4,6 @@
 
 #include "typedefs.h"
 
-#define TEST "--test"
-#define ENABLE_SERVER "--server"
-#define DISABLE_ALARM "--no-alarm"
-#define SOCKET_PATH "-s"
-#define ALARM_PATH "-a"
-
 typedef struct {
   uint num_short_breaks;
   int short_break_length;

@@ -1,59 +1,40 @@
 #include <ncurses.h>
 #include <pthread.h>
-#include <signal.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 #include "cl_args.h"
 #include "defaults.h"
+#include "input.h"
 #include "interface.h"
 #include "logging.h"
 #include "server.h"
+#include "sig_handling.h"
 #include "timer.h"
 
-static bool sig_raised = false;
-
-static void sig_handler(int sig) {
-  (void)sig;
-  sig_raised = true;
-}
-
-void del_all(server* ts, pomo_timer* tmr, interface* ui, cl_args* opts) {
+void del_all(server* ts, pomo_timer* tmr, interface* ui, cl_args* opts,
+             error_log* log) {
   del_server(ts);
   del_interface(ui);
   del_timer(tmr);
   del_args(opts);
+  close_log(log);
 }
 
 int main(int argc, char* argv[]) {
   // print errors in a file instead of on the screen
-  FILE* error_log = freopen(DEFAULT_ERROR_LOG, "w", stderr);
-
-  if (error_log == NULL) {
-    LOG_ERRNO("ERROR: freopen");
-  } else {
-    // flush on each newline
-    setvbuf(stderr, NULL, _IOLBF, 0);
-  }
+  error_log* log = open_log(argc, argv);
 
   // Setup signal handling to make sure the socket file gets
   // deleted on exit
-  struct sigaction sa;
-  sa.sa_handler = sig_handler;
-  sigemptyset(&sa.sa_mask);
-  sa.sa_flags = 0;
-  sigaction(SIGINT, &sa, NULL);
-  sigaction(SIGTERM, &sa, NULL);
-  sigaction(SIGHUP, &sa, NULL);
-  signal(SIGPIPE, SIG_IGN); // don't exit on pipe issues
+  start_sig_handling();
 
   pomo_timer* tmr = NULL;
   interface* ui = NULL;
   server* ts = NULL;
 
+  // get the command line options
   cl_args* opts = get_cl_args(argc, argv);
 
   if (opts == NULL) {
@@ -61,6 +42,7 @@ int main(int argc, char* argv[]) {
     goto error_cleanup;
   }
 
+  // create the timer
   tmr = new_timer(opts->num_short_breaks, opts->short_break_length,
                   opts->long_break_length, opts->focus_length,
                   opts->alarm_enabled, opts->alarm_path);
@@ -70,6 +52,7 @@ int main(int argc, char* argv[]) {
     goto error_cleanup;
   }
 
+  // create the interface
   ui = new_interface();
 
   if (ui == NULL) {
@@ -77,6 +60,7 @@ int main(int argc, char* argv[]) {
     goto error_cleanup;
   }
 
+  // create the server (if enabled)
   if (opts->server_enabled == true) {
     ts = new_server(opts->socket_path);
     if (ts == NULL) {
@@ -90,31 +74,18 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  // start the interface
   start_interface(ui, tmr);
   update_ui(ui, tmr);
 
+  // main loop - wait for input until timeout
+  // then handle input if something was inputted
+  // then update everything
   char input = '\0';
-
-  while (input != 'q' && sig_raised == false) {
+  while (input != QUIT && sig_raised == false) {
     input = getch();
 
-    switch (input) {
-    case TOGGLE:
-      toggle_timer(tmr);
-      break;
-    case SKIP:
-      if (tmr->r_state == RING) {
-        stop_ringer(tmr->alarm);
-      }
-      clear_timer(tmr);
-      advance_p_state(tmr);
-      break;
-    case CLEAR:
-      if (tmr->r_state != RING) {
-        clear_timer(tmr);
-      }
-      break;
-    }
+    handle_input(input, tmr);
 
     update_timer(tmr);
     update_ui(ui, tmr);
@@ -123,18 +94,12 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  del_all(ts, tmr, ui, opts);
-
-  // unlink the error log if its empty
-  struct stat st;
-  if (stat(DEFAULT_ERROR_LOG, &st) == 0 && st.st_size == 0) {
-    unlink(DEFAULT_ERROR_LOG);
-  }
+  del_all(ts, tmr, ui, opts, log);
 
   return 0;
 
 error_cleanup:
   LOG("Program Crashed!");
-  del_all(ts, tmr, ui, opts);
+  del_all(ts, tmr, ui, opts, log);
   return -1;
 }
