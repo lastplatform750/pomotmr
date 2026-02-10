@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "cl_args.h"
 #include "defaults.h"
@@ -23,6 +24,11 @@ void del_all(server* ts, pomo_timer* tmr, interface* ui, cl_args* opts,
 }
 
 int main(int argc, char* argv[]) {
+  // exit if not run in a tty or if launched by wmenu
+  if (getenv("XDG_ACTIVATION_TOKEN") != NULL || !isatty(STDIN_FILENO) || !isatty(STDOUT_FILENO)) {
+    return -1;
+  }
+
   // print errors in a file instead of on the screen
   error_log* log = open_log(argc, argv);
 
