@@ -25,7 +25,8 @@ void del_all(server* ts, pomo_timer* tmr, interface* ui, cl_args* opts,
 
 int main(int argc, char* argv[]) {
   // exit if not run in a tty or if launched by wmenu
-  if (getenv("XDG_ACTIVATION_TOKEN") != NULL || !isatty(STDIN_FILENO) || !isatty(STDOUT_FILENO)) {
+  if (getenv("XDG_ACTIVATION_TOKEN") != NULL || !isatty(STDIN_FILENO) ||
+      !isatty(STDOUT_FILENO)) {
     return -1;
   }
 
@@ -88,7 +89,7 @@ int main(int argc, char* argv[]) {
   // then handle input if something was inputted
   // then update everything
   char input = '\0';
-  while (input != QUIT && sig_raised == false) {
+  while (input != QUIT && exit_sig_raised == false) {
     input = getch();
 
     handle_input(input, tmr);

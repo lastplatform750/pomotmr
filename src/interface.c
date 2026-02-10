@@ -3,6 +3,7 @@
 
 #include "interface.h"
 #include "logging.h"
+#include "sig_handling.h"
 #include "timer.h"
 
 // How long getch will block
@@ -37,6 +38,18 @@ interface* new_interface() {
   return ui;
 }
 
+void init_draw(interface* ui, pomo_timer* tmr) {
+  uint i;
+  for (i = 0; i < (tmr->num_short_breaks); i++) {
+    mvprintw(10 + 2 * i, COL_BLOCK_1 + 2, "FOCUS");
+    mvprintw(11 + 2 * i, COL_BLOCK_1 + 2, "SHORT_BREAK");
+  }
+  mvprintw(10 + 2 * i, COL_BLOCK_1 + 2, "FOCUS");
+  mvprintw(11 + 2 * i, COL_BLOCK_1 + 2, "LONG_BREAK");
+
+  move_indicator(ui, 10);
+}
+
 int start_interface(interface* ui, pomo_timer* tmr) {
   initscr();            // start curses mode
   cbreak();             // disable line buffering
@@ -48,15 +61,7 @@ int start_interface(interface* ui, pomo_timer* tmr) {
 
   ui->started = true;
 
-  uint i;
-  for (i = 0; i < (tmr->num_short_breaks); i++) {
-    mvprintw(10 + 2 * i, COL_BLOCK_1 + 2, "FOCUS");
-    mvprintw(11 + 2 * i, COL_BLOCK_1 + 2, "SHORT_BREAK");
-  }
-  mvprintw(10 + 2 * i, COL_BLOCK_1 + 2, "FOCUS");
-  mvprintw(11 + 2 * i, COL_BLOCK_1 + 2, "LONG_BREAK");
-
-  move_indicator(ui, 10);
+  init_draw(ui, tmr);
 
   return 0;
 }
@@ -69,6 +74,12 @@ int del_interface(interface* ui) {
 }
 
 int update_ui(interface* ui, pomo_timer* tmr) {
+  if (winch_sig_raised == true) {
+    clear();
+    init_draw(ui, tmr);
+    winch_sig_raised = false;
+  }
+
   clear_line(1);
   clear_line(3);
   clear_line(5);

@@ -3,11 +3,17 @@
 
 #include "sig_handling.h"
 
-bool sig_raised = false;
+bool exit_sig_raised = false;
+bool winch_sig_raised = false;
 
 static void sig_handler(int sig) {
-  (void)sig;
-  sig_raised = true;
+  switch (sig) {
+  case SIGWINCH:
+    winch_sig_raised = true;
+    break;
+  default:
+    exit_sig_raised = true;
+  }
 }
 
 int start_sig_handling() {
@@ -18,6 +24,7 @@ int start_sig_handling() {
   sigaction(SIGINT, &sa, NULL);
   sigaction(SIGTERM, &sa, NULL);
   sigaction(SIGHUP, &sa, NULL);
+  sigaction(SIGWINCH, &sa, NULL);
   signal(SIGPIPE, SIG_IGN); // don't exit on pipe issues
 
   return 0;
