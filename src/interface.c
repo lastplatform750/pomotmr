@@ -18,7 +18,7 @@ void clear_line(uint row) {
 }
 
 int move_indicator(interface* ui, uint new_pos) {
-  if (ui->indicator_pos == new_pos) {
+  if (ui->indicator_pos == new_pos && winch_sig_raised == false) {
     return 0;
   }
 
