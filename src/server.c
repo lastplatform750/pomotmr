@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 #include "defaults.h"
-#include "logging.h"
+#include "error_log.h"
 #include "server.h"
 #include "timer.h"
 

@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #include "defaults.h"
-#include "logging.h"
+#include "error_log.h"
 
 error_log* open_log(int argc, char* argv[]) {
   error_log* new_log = calloc(1, sizeof(error_log));

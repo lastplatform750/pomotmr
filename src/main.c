@@ -9,7 +9,7 @@
 #include "defaults.h"
 #include "input.h"
 #include "interface.h"
-#include "logging.h"
+#include "error_log.h"
 #include "server.h"
 #include "sig_handling.h"
 #include "timer.h"

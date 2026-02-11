@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "logging.h"
+#include "error_log.h"
 #include "ring.h"
 #include "timer.h"
 

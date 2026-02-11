@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "interface.h"
-#include "logging.h"
+#include "error_log.h"
 #include "sig_handling.h"
 #include "timer.h"
 

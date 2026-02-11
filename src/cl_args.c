@@ -6,7 +6,7 @@
 
 #include "cl_args.h"
 #include "defaults.h"
-#include "logging.h"
+#include "error_log.h"
 
 char* init_field(const char* source, int max_len) {
   char* ret = NULL;

@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "logging.h"
+#include "error_log.h"
 #include "ring.h"
 
 #define PCM_DEVICE "default"

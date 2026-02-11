@@ -1,6 +1,6 @@
 #include "input.h"
 #include "defaults.h"
-#include "logging.h"
+#include "error_log.h"
 
 int handle_input(char input, pomo_timer* tmr) {
   switch (input) {
