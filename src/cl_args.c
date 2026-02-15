@@ -17,7 +17,7 @@ char* init_field(const char* source, int max_len) {
   } else {
     ret = calloc(source_len + 1, sizeof(char));
     if (ret == NULL) {
-      LOG_ERRNO("ERROR: malloc");
+      LOG_ERRNO("ERROR: calloc");
       return NULL;
     }
     strncpy(ret, source, source_len);
@@ -63,9 +63,9 @@ int get_default_alarm_path(cl_args* opts) {
 }
 
 cl_args* get_cl_args(int argc, char* argv[]) {
-  cl_args* opts = malloc(sizeof(cl_args));
+  cl_args* opts = calloc(1, sizeof(cl_args));
   if (opts == NULL) {
-    LOG_ERRNO("ERROR: malloc");
+    LOG_ERRNO("ERROR: calloc");
     return NULL;
   }
 

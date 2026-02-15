@@ -5,6 +5,7 @@
 
 #include "ring.h"
 #include "typedefs.h"
+#include "cl_args.h"
 
 extern const char* const POMO_STATE_STRINGS[];
 
@@ -29,9 +30,7 @@ typedef struct {
   ringer* alarm;
 } pomo_timer;
 
-pomo_timer* new_timer(uint num_short_breaks, int short_break_length,
-                      int long_break_length, int focus_length,
-                      bool alarm_enabled, char* alarm_path);
+pomo_timer* new_timer(cl_args* opts);
 
 // free the memory for tmr and clear the pointer
 void del_timer(pomo_timer* tmr);

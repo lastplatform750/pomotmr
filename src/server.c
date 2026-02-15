@@ -9,6 +9,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include "cl_args.h"
 #include "defaults.h"
 #include "error_log.h"
 #include "server.h"
@@ -66,7 +67,7 @@ void* client_thread_func(void* arg) {
   return NULL;
 }
 
-server* new_server(char* socket_path) {
+server* new_server(cl_args* opts) {
   server* ts = calloc(1, sizeof(server));
 
   if (ts == NULL) {
@@ -74,10 +75,10 @@ server* new_server(char* socket_path) {
     goto error_cleanup;
   }
 
-  if (strlen(socket_path) >= sizeof((ts->addr).sun_path)) {
+  if (strlen(opts->socket_path) >= sizeof((ts->addr).sun_path)) {
     LOG("ERROR: Socket path is too long");
   } else {
-    strncpy((ts->addr).sun_path, socket_path, sizeof((ts->addr).sun_path) - 1);
+    strncpy((ts->addr).sun_path, opts->socket_path, sizeof((ts->addr).sun_path) - 1);
   }
 
   (ts->addr).sun_family = AF_UNIX;
@@ -104,7 +105,7 @@ server* new_server(char* socket_path) {
     goto error_cleanup;
   }
 
-  if (chmod(socket_path, SOCKET_PERMISSIONS) == -1) {
+  if (chmod(opts->socket_path, SOCKET_PERMISSIONS) == -1) {
     LOG_ERRNO("ERROR: chmod");
   }
 
@@ -160,9 +161,9 @@ int update_server(server* ts, pomo_timer* tmr) {
     }
 
     client_thread_data* ctd =
-        (client_thread_data* )malloc(sizeof(client_thread_data));
+        (client_thread_data* )calloc(1, sizeof(client_thread_data));
     if (!ctd) {
-      LOG_ERRNO("ERROR: malloc");
+      LOG_ERRNO("ERROR: calloc");
       close(client_fd);
       continue;
     }

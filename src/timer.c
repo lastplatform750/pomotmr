@@ -4,19 +4,18 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "cl_args.h"
 #include "error_log.h"
 #include "ring.h"
 #include "timer.h"
 
 const char* const POMO_STATE_STRINGS[] = {"Short Break", "Long Break", "Focus"};
 
-pomo_timer* new_timer(uint num_short_breaks, int short_break_length,
-                      int long_break_length, int focus_length,
-                      bool alarm_enabled, char* alarm_path) {
-  pomo_timer* tmr = (pomo_timer* )malloc(sizeof(pomo_timer));
+pomo_timer* new_timer(cl_args* opts) {
+  pomo_timer* tmr = (pomo_timer* )calloc(1, sizeof(pomo_timer));
 
   if (tmr == NULL) {
-    LOG_ERRNO("ERROR: malloc");
+    LOG_ERRNO("ERROR: calloc");
     return NULL;
   }
 
@@ -27,21 +26,22 @@ pomo_timer* new_timer(uint num_short_breaks, int short_break_length,
   tmr->start_time = 0;
 
   tmr->break_counter = 0u;
-  tmr->num_short_breaks = num_short_breaks;
-  tmr->break_lengths[SHORT_BREAK] = short_break_length;
-  tmr->break_lengths[LONG_BREAK] = long_break_length;
-  tmr->break_lengths[FOCUS] = focus_length;
+  tmr->num_short_breaks = opts->num_short_breaks;
+  tmr->break_lengths[SHORT_BREAK] = opts->short_break_length;
+  tmr->break_lengths[LONG_BREAK] = opts->long_break_length;
+  tmr->break_lengths[FOCUS] = opts->focus_length;
 
-  tmr->alarm_enabled = alarm_enabled;
+  tmr->alarm_enabled = opts->alarm_enabled;
 
-  if (alarm_enabled && alarm_path != NULL) {
-    tmr->alarm = new_ringer(alarm_path);
+  if (tmr->alarm_enabled && opts->alarm_path != NULL) {
+    tmr->alarm = new_ringer(opts->alarm_path);
     if (tmr->alarm == NULL) {
       LOG("ERROR: new_ringer, disabling alarm");
       tmr->alarm_enabled = false;
     }
   } else {
     tmr->alarm = NULL; // alarm disabled
+    tmr->alarm_enabled = false;
   }
 
   return tmr;

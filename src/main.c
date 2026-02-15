@@ -50,9 +50,7 @@ int main(int argc, char* argv[]) {
   }
 
   // create the timer
-  tmr = new_timer(opts->num_short_breaks, opts->short_break_length,
-                  opts->long_break_length, opts->focus_length,
-                  opts->alarm_enabled, opts->alarm_path);
+  tmr = new_timer(opts);
 
   if (tmr == NULL) {
     LOG("ERROR: new_timer");
@@ -69,16 +67,15 @@ int main(int argc, char* argv[]) {
 
   // create the server (if enabled)
   if (opts->server_enabled == true) {
-    ts = new_server(opts->socket_path);
+    ts = new_server(opts);
     if (ts == NULL) {
       LOG("ERROR: new_server, disabling server");
       opts->server_enabled = false;
-    } else {
-      // don't need socket_path anymore, clear it
-      if (opts->socket_path != NULL)
-        free(opts->socket_path);
-      opts->socket_path = NULL;
     }
+    // don't need socket_path anymore, clear it
+    if (opts->socket_path != NULL)
+      free(opts->socket_path);
+    opts->socket_path = NULL;
   }
 
   // start the interface

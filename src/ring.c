@@ -88,9 +88,9 @@ void* ring_thread_func(void* arg) {
 
   snd_pcm_hw_params_get_period_size(params, &frames, 0);
   buff_size = frames * r->channels * 2; // 2 bytes/sample for S16_LE
-  buff = (char* )malloc(buff_size);
+  buff = (char* )calloc(1, buff_size);
   if (buff == NULL) {
-    LOG_ERRNO("ERROR: malloc");
+    LOG_ERRNO("ERROR: calloc");
     goto cleanup;
   }
 

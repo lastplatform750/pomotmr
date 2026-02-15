@@ -7,13 +7,14 @@
 
 #include "timer.h"
 #include "typedefs.h"
+#include "cl_args.h"
 
 typedef struct {
   sockaddr_un addr;
   int server_fd;
 } server;
 
-server* new_server(char* socket_path);
+server* new_server(cl_args* opts);
 
 void del_server(server* ts);
 
