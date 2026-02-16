@@ -3,15 +3,12 @@
 #include <pthread.h>
 #include <stdatomic.h>
 
-#include "ring.h"
-#include "typedefs.h"
 #include "cl_args.h"
+#include "ring.h"
+#include "timer_log.h"
+#include "typedefs.h"
 
 extern const char* const POMO_STATE_STRINGS[];
-
-typedef enum { PLAY, PAUSE, RING } run_state;
-
-typedef enum { SHORT_BREAK, LONG_BREAK, FOCUS } pomo_state;
 
 typedef struct {
   uint num_short_breaks;
@@ -20,6 +17,8 @@ typedef struct {
   // These are ints cause of error checking
   // and to avoid comparisons betweens ints and uints
   int previous_elapsed_time;
+  int current_elapsed_time;
+  int total_elapsed_time;
   int start_time;
   int break_lengths[3];
 
@@ -28,15 +27,16 @@ typedef struct {
 
   bool alarm_enabled;
   ringer* alarm;
+
+  bool timer_log_enabled;
+  timer_log* tlog;
+
 } pomo_timer;
 
 pomo_timer* new_timer(cl_args* opts);
 
 // free the memory for tmr and clear the pointer
 void del_timer(pomo_timer* tmr);
-
-// returns elapsed time in seconds
-int get_elapsed_time(pomo_timer* tmr);
 
 // returns remaining time in pomo section
 int get_remaining_time(pomo_timer* tmr);

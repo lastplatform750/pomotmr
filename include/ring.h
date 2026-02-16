@@ -7,7 +7,7 @@
 #include "typedefs.h"
 
 typedef struct {
-  char* alarm_filename;
+  char* alarm_path;
   uint rate;
   int channels;
   snd_pcm_t* pcm_handle;
@@ -15,7 +15,7 @@ typedef struct {
   pthread_t ring_thread;
 } ringer;
 
-ringer* new_ringer(char* alarm_filename);
+ringer* new_ringer(char* alarm_path);
 
 void del_ringer(ringer* r);
 

@@ -35,7 +35,6 @@
 #include "ring.h"
 
 #define PCM_DEVICE "default"
-#define WAV_FILENAME "./resource/sample.wav"
 
 const int DEFAULT_RATE = 44100;
 const int DEFAULT_NUM_CHANNELS = 2;
@@ -48,10 +47,10 @@ void* ring_thread_func(void* arg) {
     return NULL;
   }
 
-  int alarm_fptr = open(r->alarm_filename, O_RDONLY);
+  int alarm_fptr = open(r->alarm_path, O_RDONLY);
 
   if (alarm_fptr == -1) {
-    LOG_ERRNO("ERROR: Couldn't open \"%s\"", r->alarm_filename);
+    LOG_ERRNO("ERROR: Couldn't open \"%s\"", r->alarm_path);
     return NULL;
   }
 
@@ -146,7 +145,7 @@ cleanup:
   return NULL;
 }
 
-ringer* new_ringer(char* alarm_filename) {
+ringer* new_ringer(char* alarm_path) {
   ringer* new_r = NULL;
 
   new_r = (ringer* )calloc(1, sizeof(ringer));
@@ -165,7 +164,7 @@ ringer* new_ringer(char* alarm_filename) {
 
   new_r->rate = DEFAULT_RATE;
   new_r->channels = DEFAULT_NUM_CHANNELS;
-  new_r->alarm_filename = alarm_filename;
+  new_r->alarm_path = alarm_path;
 
   /* Open the PCM device in playback mode */
   int pcm;

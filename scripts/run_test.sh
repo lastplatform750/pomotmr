@@ -4,4 +4,4 @@ ROOT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/.
 
 ${ROOT_DIR}/scripts/build_test.sh
 
-${ROOT_DIR}/builddir/src/pomotmr --test -a "./resource/sample.wav" 2> "${ROOT_DIR}/test.log"
+${ROOT_DIR}/builddir/src/pomotmr --test --enable-server --enable-timer-log --timer-log-path ${ROOT_DIR}/timer.log

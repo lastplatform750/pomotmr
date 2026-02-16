@@ -51,6 +51,7 @@ void close_log(error_log* log) {
       fclose(log->filestream);
     }
 
+    // delete the error log if nothing was logged
     struct stat st;
     if (stat(log->path, &st) == 0 && st.st_size == 0) {
       unlink(log->path);

@@ -26,14 +26,14 @@ char* init_field(const char* source, int max_len) {
   return ret;
 }
 
-int get_default_alarm_path(cl_args* opts) {
+char* get_relative_default_path(const char* relative_path) {
   char buf[PATH_MAX] = {0};
 
   ssize_t pathsize = -1;
   if ((pathsize = readlink("/proc/self/exe", buf, PATH_MAX)) == -1) {
     LOG_ERRNO("ERROR: readlink");
     LOG("ERROR: Couldn't get path to executable");
-    return -1;
+    return NULL;
   }
 
   // truncate off name of executable
@@ -44,22 +44,16 @@ int get_default_alarm_path(cl_args* opts) {
     }
   }
 
-  ssize_t total_len = strlen(buf) + strlen(DEFAULT_ALARM_PATH);
+  ssize_t total_len = strlen(buf) + strlen(relative_path);
 
   if (total_len >= PATH_MAX) {
-    LOG("ERROR: Default alarm file path too long");
-    return -1;
+    LOG("ERROR: File path too long: \"%s%s\"", buf, relative_path);
+    return NULL;
   } else {
-    opts->alarm_path = calloc(total_len + 1, sizeof(char));
-    if (opts->alarm_path == NULL) {
-      LOG_ERRNO("ERROR: calloc");
-    }
-
-    strcpy(opts->alarm_path, buf);
-    strcat(opts->alarm_path, DEFAULT_ALARM_PATH);
+    strcat(buf, relative_path);
   }
 
-  return 0;
+  return init_field(buf, PATH_MAX);
 }
 
 cl_args* get_cl_args(int argc, char* argv[]) {
@@ -71,6 +65,7 @@ cl_args* get_cl_args(int argc, char* argv[]) {
 
   opts->alarm_path = NULL;
   opts->socket_path = NULL;
+  opts->timer_log_path = NULL;
 
   // Set defaults
   opts->short_break_length = DEFAULT_SHORT_BREAK_LENGTH;
@@ -78,6 +73,7 @@ cl_args* get_cl_args(int argc, char* argv[]) {
   opts->focus_length = DEFAULT_FOCUS_LENGTH;
   opts->num_short_breaks = DEFAULT_NUM_SHORT_BREAKS;
   opts->server_enabled = false;
+  opts->timer_log_enabled = false;
   opts->alarm_enabled = true;
 
   // Check options
@@ -91,6 +87,10 @@ cl_args* get_cl_args(int argc, char* argv[]) {
 
     if (strcmp(argv[arg_counter], ENABLE_SERVER) == 0) {
       opts->server_enabled = true;
+    }
+
+    if (strcmp(argv[arg_counter], ENABLE_TIMER_LOG) == 0) {
+      opts->timer_log_enabled = true;
     }
 
     if (strcmp(argv[arg_counter], DISABLE_ALARM) == 0) {
@@ -110,16 +110,37 @@ cl_args* get_cl_args(int argc, char* argv[]) {
         opts->socket_path == NULL) {
       arg_counter++;
       opts->socket_path = init_field(argv[arg_counter], PATH_MAX);
-      LOG("ERROR: Couldn't get given socket path: \"%s\"", argv[arg_counter]);
+      if (opts->alarm_path == NULL) {
+        LOG("ERROR: Couldn't get given socket path: \"%s\"", argv[arg_counter]);
+      }
+    }
+
+    if (strcmp(argv[arg_counter], TIMER_LOG_PATH) == 0 &&
+        arg_counter + 1 < argc && opts->timer_log_path == NULL) {
+      arg_counter++;
+      opts->timer_log_path = init_field(argv[arg_counter], PATH_MAX);
+      if (opts->timer_log_path == NULL) {
+        LOG("ERROR: Couldn't get given timer log path: \"%s\"",
+            argv[arg_counter]);
+      }
     }
 
     arg_counter++;
   }
 
   if (opts->alarm_enabled == true && opts->alarm_path == NULL) {
-    if (get_default_alarm_path(opts) == -1) {
+    opts->alarm_path = get_relative_default_path(DEFAULT_ALARM_PATH);
+    if (opts->alarm_path == NULL) {
       LOG("ERROR: Couldn't get default alarm path, disabling alarm");
       opts->alarm_enabled = false;
+    }
+  }
+
+  if (opts->timer_log_enabled == true && opts->timer_log_path == NULL) {
+    opts->timer_log_path = get_relative_default_path(DEFAULT_TIMER_LOG_PATH);
+    if (opts->timer_log_path == NULL) {
+      LOG("ERROR: Couldn't get default timer log path, disabling timer log");
+      opts->timer_log_enabled = false;
     }
   }
 
@@ -138,6 +159,8 @@ void del_args(cl_args* opts) {
   if (opts != NULL) {
     if (opts->alarm_path != NULL)
       free(opts->alarm_path);
+    if (opts->timer_log_path != NULL)
+      free(opts->timer_log_path);
     if (opts->socket_path != NULL)
       free(opts->socket_path);
     free(opts);

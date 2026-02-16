@@ -15,7 +15,6 @@ int handle_input(char input, pomo_timer* tmr) {
     if (tmr->r_state == RING) {
       stop_ringer(tmr->alarm);
     }
-    clear_timer(tmr);
     advance_p_state(tmr);
     break;
   case CLEAR:

@@ -8,6 +8,7 @@
 #include "error_log.h"
 #include "ring.h"
 #include "timer.h"
+#include "timer_log.h"
 
 const char* const POMO_STATE_STRINGS[] = {"Short Break", "Long Break", "Focus"};
 
@@ -22,7 +23,8 @@ pomo_timer* new_timer(cl_args* opts) {
   tmr->r_state = PAUSE;
   tmr->p_state = FOCUS;
 
-  tmr->previous_elapsed_time = 0u;
+  tmr->previous_elapsed_time = 0;
+  tmr->current_elapsed_time = 0;
   tmr->start_time = 0;
 
   tmr->break_counter = 0u;
@@ -44,15 +46,20 @@ pomo_timer* new_timer(cl_args* opts) {
     tmr->alarm_enabled = false;
   }
 
-  return tmr;
-}
+  tmr->timer_log_enabled = opts->timer_log_enabled;
 
-void del_timer(pomo_timer* tmr) {
-  if (tmr != NULL) {
-    if ((tmr->alarm) != NULL)
-      del_ringer(tmr->alarm);
-    free(tmr);
+  if (tmr->timer_log_enabled && opts->timer_log_path != NULL) {
+    tmr->tlog = new_timer_log(opts);
+    if (tmr->tlog == NULL) {
+      LOG("ERROR: new_timer_log, disabling timer log");
+      tmr->timer_log_enabled = false;
+    }
+  } else {
+    tmr->tlog = NULL;
+    tmr->timer_log_enabled = false;
   }
+
+  return tmr;
 }
 
 int get_mono_time() {
@@ -64,9 +71,9 @@ int get_mono_time() {
   return (int)tp.tv_sec;
 }
 
-int get_elapsed_time(pomo_timer* tmr) {
+int update_elapsed_time(pomo_timer* tmr) {
   if (tmr->r_state == PAUSE || tmr->r_state == RING) {
-    return tmr->previous_elapsed_time;
+    return 0;
   }
 
   int mono_time;
@@ -75,28 +82,21 @@ int get_elapsed_time(pomo_timer* tmr) {
     return -1;
   }
 
-  return (mono_time - (tmr->start_time)) + (tmr->previous_elapsed_time);
+  tmr->current_elapsed_time = (mono_time - (tmr->start_time));
+  tmr->total_elapsed_time =
+      tmr->previous_elapsed_time + tmr->current_elapsed_time;
+
+  return 0;
 }
 
 int get_remaining_time(pomo_timer* tmr) {
-  int elapsed_time;
-  if ((elapsed_time = get_elapsed_time(tmr)) == -1) {
-    LOG("ERROR: get_elapsed_time");
-    return -1;
-  }
-  return (tmr->break_lengths[tmr->p_state]) - elapsed_time;
+  return (tmr->break_lengths[tmr->p_state]) - tmr->total_elapsed_time;
 }
 
 int stop_timer(pomo_timer* tmr) {
   if (tmr->r_state == PLAY) {
-    int elapsed_time = get_elapsed_time(tmr);
-
-    if (elapsed_time < 0) {
-      LOG("ERROR: get_elapsed_time");
-      return -1;
-    }
-
-    tmr->previous_elapsed_time = elapsed_time;
+    tmr->previous_elapsed_time = tmr->total_elapsed_time;
+    tmr->current_elapsed_time = 0;
   }
   tmr->r_state = PAUSE;
   return 0;
@@ -140,8 +140,14 @@ int toggle_timer(pomo_timer* tmr) {
 }
 
 void clear_timer(pomo_timer* tmr) {
+  if (tmr->timer_log_enabled) {
+    update_timer_log(tmr->tlog, tmr->p_state, tmr->total_elapsed_time);
+  }
+
   tmr->r_state = PAUSE;
   tmr->previous_elapsed_time = 0;
+  tmr->current_elapsed_time = 0;
+  tmr->total_elapsed_time = 0;
   tmr->start_time = 0;
 }
 
@@ -150,6 +156,8 @@ const char* get_p_state_string(pomo_timer* tmr) {
 }
 
 void advance_p_state(pomo_timer* tmr) {
+  clear_timer(tmr);
+
   if (tmr->p_state == SHORT_BREAK || tmr->p_state == LONG_BREAK) {
     tmr->p_state = FOCUS;
     tmr->break_counter =
@@ -162,14 +170,30 @@ void advance_p_state(pomo_timer* tmr) {
 }
 
 void update_timer(pomo_timer* tmr) {
-  if (get_elapsed_time(tmr) > (tmr->break_lengths[tmr->p_state])) {
-    clear_timer(tmr);
+  update_elapsed_time(tmr);
+
+  if (tmr->total_elapsed_time >= (tmr->break_lengths[tmr->p_state])) {
     advance_p_state(tmr);
 
     // play alarm sound
     tmr->r_state = RING;
-    if ((tmr->alarm_enabled) == true) {
+    if (tmr->alarm_enabled) {
       start_ringer(tmr->alarm);
     }
+  }
+}
+
+void del_timer(pomo_timer* tmr) {
+  if (tmr->timer_log_enabled) {
+    update_elapsed_time(tmr);
+    update_timer_log(tmr->tlog, tmr->p_state, tmr->total_elapsed_time);
+  }
+
+  if (tmr != NULL) {
+    if ((tmr->alarm) != NULL)
+      del_ringer(tmr->alarm);
+    if ((tmr->tlog) != NULL)
+      del_timer_log(tmr->tlog);
+    free(tmr);
   }
 }
