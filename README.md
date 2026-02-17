@@ -49,7 +49,8 @@ A crappy ncurses pomodoro timer
 ## command line options
   * **--disable-alarm**: don't play a sound at the end of pomo sections
   * **--enable-server**: enable the unix socket
-  *
+  * **--enable-timer-log**: enable timer logging
+  * **--task-names**: a comma separated list of task names (for logging)
   * **--alarm-path \<path\>**: set the path for the alarm sound
   * **--socket-path \<path\>**: set the path for the socket
   * **--error-path \<path\>**: set the path for error logging
