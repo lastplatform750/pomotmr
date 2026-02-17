@@ -5,6 +5,11 @@
 #include "typedefs.h"
 
 typedef struct {
+  char* *list_items;
+  uint num_items;
+} separated_list;
+
+typedef struct {
   uint num_short_breaks;
   int short_break_length;
   int long_break_length;
@@ -15,6 +20,7 @@ typedef struct {
   char* alarm_path;
   char* socket_path;
   char* timer_log_path;
+  separated_list* task_names;
 } cl_args;
 
 cl_args* get_cl_args(int argc, char* argv[]);

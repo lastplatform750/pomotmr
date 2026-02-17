@@ -4,9 +4,11 @@
 
 #include "timer.h"
 
+typedef enum { STATE, TASK } indicator;
+
 typedef struct interface {
   bool started;
-  uint indicator_pos;
+  uint indicator_pos[2];
 } interface;
 
 interface* new_interface();

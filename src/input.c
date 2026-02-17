@@ -1,6 +1,8 @@
 #include "input.h"
 #include "defaults.h"
 #include "error_log.h"
+#include "timer.h"
+#include "timer_log.h"
 
 int handle_input(char input, pomo_timer* tmr) {
   switch (input) {
@@ -22,6 +24,11 @@ int handle_input(char input, pomo_timer* tmr) {
       clear_timer(tmr);
     }
     break;
+  case SWITCH_TASK:
+    if (tmr->timer_log_enabled && tmr->r_state != RING) {
+      clear_timer(tmr);
+      advance_task(tmr->tlog);
+    }
   }
 
   return 0;

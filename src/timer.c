@@ -112,6 +112,10 @@ int start_timer(pomo_timer* tmr) {
     tmr->start_time = mono_time;
   }
   tmr->r_state = PLAY;
+
+  if (tmr->timer_log_enabled) {
+    start_timer_log(tmr->tlog);
+  }
   return 0;
 }
 

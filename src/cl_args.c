@@ -26,6 +26,94 @@ char* init_field(const char* source, int max_len) {
   return ret;
 }
 
+separated_list* get_separated_list(const char* arg) {
+  char* list_string = NULL;
+  char* *list_items = NULL;
+  separated_list* sep_list = NULL;
+
+  uint num_items = 0;
+  int initial_offset = -1;
+
+  for (unsigned long i = 0; i <= strlen(arg); i++) {
+    if (initial_offset == -1 && arg[i] != TASK_NAMES_DELIMITER &&
+        arg[i] != '\0') {
+      initial_offset = i;
+    }
+
+    if ((arg[i] == TASK_NAMES_DELIMITER || arg[i] == '\0') && i > 0 &&
+        arg[i - 1] != TASK_NAMES_DELIMITER) {
+      num_items++;
+    }
+  }
+
+  if (num_items == 0) {
+    LOG("ERROR: no nonempty strings");
+    goto error_cleanup;
+  }
+
+  sep_list = calloc(1, sizeof(separated_list));
+  if (sep_list == NULL) {
+    LOG_ERRNO("ERROR: calloc");
+    goto error_cleanup;
+  }
+
+  list_string = init_field(arg + initial_offset, MAX_LIST_STRING_LEN);
+  if (list_string == NULL) {
+    LOG("ERROR: init_field");
+    goto error_cleanup;
+  }
+
+  list_items = calloc(num_items, sizeof(char* ));
+  if (list_items == NULL) {
+    LOG_ERRNO("ERROR: calloc");
+    goto error_cleanup;
+  }
+
+  list_items[0] = list_string;
+
+  unsigned long list_string_len = strlen(list_string);
+  uint item_counter = 1u;
+  for (unsigned long i = 1; i < list_string_len; i++) {
+    if (list_string[i] == TASK_NAMES_DELIMITER) {
+      list_string[i] = '\0';
+      if (list_string[i + 1] != TASK_NAMES_DELIMITER &&
+          list_string[i + 1] != '\0' && item_counter < num_items) {
+        list_items[item_counter] = list_string + i + 1;
+        item_counter++;
+      }
+    }
+  }
+
+  sep_list->list_items = list_items;
+  sep_list->num_items = num_items;
+
+  return sep_list;
+
+error_cleanup:
+  if (list_string != NULL) {
+    free(list_string);
+  }
+  if (list_items != NULL) {
+    free(list_items);
+  }
+  if (sep_list != NULL) {
+    free(sep_list);
+  }
+  return NULL;
+}
+
+void del_separated_list(separated_list* sep_list) {
+  if (sep_list != NULL) {
+    if (sep_list->list_items != NULL) {
+      if ((sep_list->list_items)[0] != NULL) {
+        free((sep_list->list_items)[0]);
+      }
+      free(sep_list->list_items);
+    }
+    free(sep_list);
+  }
+}
+
 char* get_relative_default_path(const char* relative_path) {
   char buf[PATH_MAX] = {0};
 
@@ -66,6 +154,7 @@ cl_args* get_cl_args(int argc, char* argv[]) {
   opts->alarm_path = NULL;
   opts->socket_path = NULL;
   opts->timer_log_path = NULL;
+  opts->task_names = NULL;
 
   // Set defaults
   opts->short_break_length = DEFAULT_SHORT_BREAK_LENGTH;
@@ -125,22 +214,21 @@ cl_args* get_cl_args(int argc, char* argv[]) {
       }
     }
 
+    if (strcmp(argv[arg_counter], TASK_NAMES) == 0 && arg_counter + 1 < argc &&
+        opts->task_names == NULL) {
+      arg_counter++;
+      opts->task_names = get_separated_list(argv[arg_counter]);
+    }
+
     arg_counter++;
   }
 
+  // Resort to defaults, and disable options if that fails
   if (opts->alarm_enabled == true && opts->alarm_path == NULL) {
     opts->alarm_path = get_relative_default_path(DEFAULT_ALARM_PATH);
     if (opts->alarm_path == NULL) {
       LOG("ERROR: Couldn't get default alarm path, disabling alarm");
       opts->alarm_enabled = false;
-    }
-  }
-
-  if (opts->timer_log_enabled == true && opts->timer_log_path == NULL) {
-    opts->timer_log_path = get_relative_default_path(DEFAULT_TIMER_LOG_PATH);
-    if (opts->timer_log_path == NULL) {
-      LOG("ERROR: Couldn't get default timer log path, disabling timer log");
-      opts->timer_log_enabled = false;
     }
   }
 
@@ -152,11 +240,28 @@ cl_args* get_cl_args(int argc, char* argv[]) {
     }
   }
 
+  if (opts->timer_log_enabled == true && opts->timer_log_path == NULL) {
+    opts->timer_log_path = get_relative_default_path(DEFAULT_TIMER_LOG_PATH);
+    if (opts->timer_log_path == NULL) {
+      LOG("ERROR: Couldn't get default timer log path, disabling timer log");
+      opts->timer_log_enabled = false;
+    }
+  }
+
+  if (opts->timer_log_enabled == true && opts->task_names == NULL) {
+    opts->task_names = get_separated_list(DEFAULT_TASK_NAME);
+    if (opts->task_names == NULL) {
+      LOG("ERROR: Couldn't set default task name, disabling timer log");
+      opts->timer_log_enabled = false;
+    }
+  }
+
   return opts;
 }
 
 void del_args(cl_args* opts) {
   if (opts != NULL) {
+    del_separated_list(opts->task_names);
     if (opts->alarm_path != NULL)
       free(opts->alarm_path);
     if (opts->timer_log_path != NULL)

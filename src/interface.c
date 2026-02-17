@@ -1,8 +1,8 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
-#include "interface.h"
 #include "error_log.h"
+#include "interface.h"
 #include "sig_handling.h"
 #include "timer.h"
 
@@ -17,15 +17,25 @@ void clear_line(uint row) {
   clrtoeol();
 }
 
-int move_indicator(interface* ui, uint new_pos) {
-  if (ui->indicator_pos == new_pos && winch_sig_raised == false) {
+int move_indicator(interface* ui, uint new_pos, indicator ind) {
+  if (ui->indicator_pos[ind] == new_pos && winch_sig_raised == false) {
     return 0;
   }
 
-  mvaddch(ui->indicator_pos, COL_BLOCK_1, ' ');
-  mvaddch(new_pos, COL_BLOCK_1, '*');
+  uint horizontal_pos;
 
-  ui->indicator_pos = new_pos;
+  switch (ind) {
+  case STATE:
+    horizontal_pos = COL_BLOCK_1;
+    break;
+  case TASK:
+    horizontal_pos = COL_BLOCK_2;
+  }
+
+  mvaddch(ui->indicator_pos[ind], horizontal_pos, ' ');
+  mvaddch(new_pos, horizontal_pos, '*');
+
+  ui->indicator_pos[ind] = new_pos;
 
   return 0;
 }
@@ -47,7 +57,15 @@ void init_draw(interface* ui, pomo_timer* tmr) {
   mvprintw(10 + 2 * i, COL_BLOCK_1 + 2, "FOCUS");
   mvprintw(11 + 2 * i, COL_BLOCK_1 + 2, "LONG_BREAK");
 
-  move_indicator(ui, 10);
+  move_indicator(ui, 10, STATE);
+
+  if (tmr->timer_log_enabled) {
+    for (i = 0; i < tmr->tlog->task_names->num_items; i++) {
+      mvprintw(10 + i, COL_BLOCK_2 + 2, "%s",
+               tmr->tlog->task_names->list_items[i]);
+    }
+    move_indicator(ui, 10, TASK);
+  }
 }
 
 int start_interface(interface* ui, pomo_timer* tmr) {
@@ -105,9 +123,13 @@ int update_ui(interface* ui, pomo_timer* tmr) {
   }
 
   if (tmr->p_state == FOCUS) {
-    move_indicator(ui, 10 + 2 * (tmr->break_counter));
+    move_indicator(ui, 10 + 2 * (tmr->break_counter), STATE);
   } else {
-    move_indicator(ui, 11 + 2 * (tmr->break_counter));
+    move_indicator(ui, 11 + 2 * (tmr->break_counter), STATE);
+  }
+
+  if (tmr->timer_log_enabled) {
+    move_indicator(ui, 10 + (tmr->tlog->current_task), TASK);
   }
 
   refresh();
