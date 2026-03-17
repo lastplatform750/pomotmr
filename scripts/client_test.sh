@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 while true
 do
     if [ -S /tmp/pomotmr.sock ]; then

@@ -1,7 +1,10 @@
 #!/bin/sh
 
+APP="pomotmr"
+CL="--test --enable-timer-log --timer-log-path ${ROOT_DIR}/timer.log --task-names a,b,c,d,e"
+
 ROOT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/.."
 
 ${ROOT_DIR}/scripts/build_test.sh
 
-${ROOT_DIR}/builddir/src/pomotmr --test --enable-timer-log --timer-log-path ${ROOT_DIR}/timer.log --task-names a,b,c,d,e
+"${ROOT_DIR}/builddir/src/${APP}" "${CL}"

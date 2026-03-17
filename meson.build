@@ -6,7 +6,6 @@ project('myproject', 'c',
 
 subdir('src')
 
-
 install_subdir('resource', 
                 install_dir: join_paths(get_option('datadir'), 
                 'pomotmr'))
