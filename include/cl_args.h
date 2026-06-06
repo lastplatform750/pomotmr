@@ -5,7 +5,7 @@
 #include "typedefs.h"
 
 typedef struct {
-  char* *list_items;
+  char** list_items;
   uint num_items;
 } separated_list;
 

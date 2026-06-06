@@ -4,7 +4,7 @@
 #include "timer.h"
 #include "timer_log.h"
 
-int handle_input(char input, pomo_timer* tmr) {
+int handle_input(int input, pomo_timer* tmr) {
   switch (input) {
   case QUIT:
     break;
@@ -27,7 +27,13 @@ int handle_input(char input, pomo_timer* tmr) {
   case SWITCH_TASK:
     if (tmr->timer_log_enabled && tmr->r_state != RING) {
       clear_timer(tmr);
-      advance_task(tmr->tlog);
+      advance_task(tmr->tlog, 1);
+    }
+    break;
+  case SWITCH_TASK_REVERSE:
+    if (tmr->timer_log_enabled && tmr->r_state != RING) {
+      clear_timer(tmr);
+      advance_task(tmr->tlog, -1);
     }
   }
 

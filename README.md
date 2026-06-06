@@ -32,7 +32,7 @@ A crappy ncurses pomodoro timer
 
   The default location for the log is "timer.log", in the same directory as the executable. You can specify where to put the log with **--timer-log-path**
 
-  You can select which task you want to log using **tab**. The log gets updated on pressing **tab** only if some amount of focus or break time elapsed for the previous task.
+  You can select which task you want to log using **tab** (or **shift tab** to go back a task). The log gets updated on pressing **tab** (or **shift tab**) only if some amount of focus or break time elapsed for the previous task.
 
   Each line in the log is a comma separated list for a single task. The entries of a line, in order, are:
   * A unix timestamp for when the logging of the task began
@@ -42,9 +42,10 @@ A crappy ncurses pomodoro timer
 
 ## controls
   * **space**: toggles play/pause, and stops the alarm sound
-  * **c**: resets the time of the current pomo section and pauses
+  * **d**: resets the time of the current pomo section and pauses
   * **enter**: skips to the next pomo section and pauses
   * **tab**: (if logging is enabled) writes a log entry for the current task (only if there was a nonzero amount of focus or break time) and then advances to the next task
+  * **shift tab**: (if logging is enabled) writes a log entry for the current task (only if there was a nonzero amount of focus or break time) and then returns to the previous task
 
 ## command line options
   * **--disable-alarm**: don't play a sound at the end of pomo sections

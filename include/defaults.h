@@ -1,14 +1,17 @@
 #pragma once
 
+#include <ncurses.h>
+
 #include "typedefs.h"
 
 // Keys for controls
 // need to use define cause switch doesn't like consts
 #define TOGGLE ' '
 #define SKIP '\n'
-#define CLEAR 'c'
+#define CLEAR 'd'
 #define QUIT 'q'
 #define SWITCH_TASK '\t'
+#define SWITCH_TASK_REVERSE KEY_BTAB
 
 #define DEFAULT
 

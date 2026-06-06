@@ -59,12 +59,16 @@ void clear_timer_log(timer_log* tlog) {
   tlog->is_active = false;
 }
 
-int advance_task(timer_log* tlog) {
+int advance_task(timer_log* tlog, int advance_count) {
   if (flush_timer_log(tlog) == -1) {
     LOG("ERROR: flush_timer_log");
     return -1;
   }
-  tlog->current_task = (tlog->current_task + 1) % (tlog->task_names->num_items);
+  int positive_advance_count =
+      advance_count >= 0 ? advance_count
+                         : advance_count + (int)(tlog->task_names->num_items);
+  tlog->current_task = (tlog->current_task + positive_advance_count) %
+                       (tlog->task_names->num_items);
   return 0;
 }
 

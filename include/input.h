@@ -2,4 +2,4 @@
 
 #include "timer.h"
 
-int handle_input(char input, pomo_timer* timer);
+int handle_input(int input, pomo_timer* timer);

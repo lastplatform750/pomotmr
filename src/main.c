@@ -7,9 +7,9 @@
 
 #include "cl_args.h"
 #include "defaults.h"
+#include "error_log.h"
 #include "input.h"
 #include "interface.h"
-#include "error_log.h"
 #include "server.h"
 #include "sig_handling.h"
 #include "timer.h"
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
   // main loop - wait for input until timeout
   // then handle input if something was inputted
   // then update everything
-  char input = '\0';
+  int input = 0;
   while (input != QUIT && exit_sig_raised == false) {
     input = getch();
 

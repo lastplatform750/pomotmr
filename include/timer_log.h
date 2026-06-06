@@ -21,7 +21,7 @@ int start_timer_log(timer_log* tlog);
 
 void update_timer_log(timer_log* tlog, pomo_state p_state, int add_time);
 
-int advance_task(timer_log* tlog);
+int advance_task(timer_log* tlog, int advance_count);
 
 int flush_timer_log(timer_log* tlog);
 

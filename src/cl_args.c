@@ -28,7 +28,7 @@ char* init_field(const char* source, int max_len) {
 
 separated_list* get_separated_list(const char* arg) {
   char* list_string = NULL;
-  char* *list_items = NULL;
+  char** list_items = NULL;
   separated_list* sep_list = NULL;
 
   uint num_items = 0;
