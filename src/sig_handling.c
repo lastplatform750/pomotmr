@@ -3,8 +3,8 @@
 
 #include "sig_handling.h"
 
-bool exit_sig_raised = false;
-bool winch_sig_raised = false;
+volatile sig_atomic_t exit_sig_raised = false;
+volatile sig_atomic_t winch_sig_raised = false;
 
 static void sig_handler(int sig) {
   switch (sig) {
