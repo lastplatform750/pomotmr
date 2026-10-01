@@ -45,10 +45,12 @@ int start_timer_log(timer_log* tlog) {
 }
 
 void update_timer_log(timer_log* tlog, pomo_state p_state, int add_time) {
-  if (p_state == FOCUS && tlog->is_active) {
-    tlog->total_focus_time += add_time;
-  } else {
-    tlog->total_break_time += add_time;
+  if (tlog->is_active) {
+    if (p_state == FOCUS) {
+      tlog->total_focus_time += add_time;
+    } else {
+      tlog->total_break_time += add_time;
+    }
   }
 }
 

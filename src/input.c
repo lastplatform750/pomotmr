@@ -14,7 +14,7 @@ int handle_input(int input, pomo_timer* tmr) {
     }
     break;
   case SKIP:
-    if (tmr->r_state == RING) {
+    if (tmr->r_state == RING && tmr->alarm_enabled) {
       stop_ringer(tmr->alarm);
     }
     advance_p_state(tmr);

@@ -188,12 +188,11 @@ void update_timer(pomo_timer* tmr) {
 }
 
 void del_timer(pomo_timer* tmr) {
-  if (tmr->timer_log_enabled) {
-    update_elapsed_time(tmr);
-    update_timer_log(tmr->tlog, tmr->p_state, tmr->total_elapsed_time);
-  }
-
   if (tmr != NULL) {
+    if (tmr->timer_log_enabled) {
+      update_elapsed_time(tmr);
+      update_timer_log(tmr->tlog, tmr->p_state, tmr->total_elapsed_time);
+    }
     if ((tmr->alarm) != NULL)
       del_ringer(tmr->alarm);
     if ((tmr->tlog) != NULL)

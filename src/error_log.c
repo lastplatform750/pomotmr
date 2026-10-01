@@ -36,6 +36,7 @@ error_log* open_log(int argc, char* argv[]) {
     if (new_log->filestream == NULL) {
       LOG_ERRNO("ERROR: freopen");
       LOG("Couldn't open default error path");
+      close_log(new_log);
       return NULL;
     }
   }

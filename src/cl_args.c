@@ -28,7 +28,7 @@ char* init_field(const char* source, int max_len) {
 
 separated_list* get_separated_list(const char* arg) {
   char* list_string = NULL;
-  char** list_items = NULL;
+  char* *list_items = NULL;
   separated_list* sep_list = NULL;
 
   uint num_items = 0;
@@ -199,7 +199,7 @@ cl_args* get_cl_args(int argc, char* argv[]) {
         opts->socket_path == NULL) {
       arg_counter++;
       opts->socket_path = init_field(argv[arg_counter], PATH_MAX);
-      if (opts->alarm_path == NULL) {
+      if (opts->socket_path == NULL) {
         LOG("ERROR: Couldn't get given socket path: \"%s\"", argv[arg_counter]);
       }
     }
