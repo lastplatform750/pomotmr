@@ -10,7 +10,7 @@ BUNDLE_DIR="${ROOT_DIR}/dist/${APP}"
 
 # setup meson if needed
 if [ ! -f ${BUILD_DIR}/meson-private/coredata.dat ]; then
-  meson setup "${BUILD_DIR}" "${ROOT_DIR}"
+  meson setup "${BUILD_DIR}" "${ROOT_DIR}" -Doptimization=3 -Db_ndebug=true
 fi
 
 # install to staging
